@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?><sld:StyledLayerDescriptor xmlns="http://www.opengis.net/sld" xmlns:sld="http://www.opengis.net/sld" xmlns:ogc="http://www.opengis.net/ogc" xmlns:gml="http://www.opengis.net/gml" version="1.0.0">
+  <sld:NamedLayer>
+    <sld:Name>A42Nyiragongo32160_32661_AutoGEOC_VV_LonLatCoh_Bp-108.1m_35days_Ha157.7m</sld:Name>
+    <sld:UserStyle>
+      <sld:Name>sld_coh</sld:Name>
+      <sld:FeatureTypeStyle>
+        <sld:Rule>
+          <sld:RasterSymbolizer>
+            <sld:Geometry>
+              <ogc:PropertyName>grid</ogc:PropertyName>
+            </sld:Geometry>
+            <sld:ColorMap>
+              <sld:ColorMapEntry color="#050505" opacity="1.0" quantity="0.133098" label="0.133098"/>
+              <sld:ColorMapEntry color="#444444" opacity="1.0" quantity="0.317909" label="0.317909"/>
+              <sld:ColorMapEntry color="#777777" opacity="1.0" quantity="0.502720" label="0.502720"/>
+              <sld:ColorMapEntry color="#aaaaaa" opacity="1.0" quantity="0.687532" label="0.687532"/>
+              <sld:ColorMapEntry color="#ffffff" opacity="1.0" quantity="0.872343" label="0.872343"/>
+            </sld:ColorMap>
+          </sld:RasterSymbolizer>
+        </sld:Rule>
+      </sld:FeatureTypeStyle>
+    </sld:UserStyle>
+  </sld:NamedLayer>
+</sld:StyledLayerDescriptor>

@@ -1,0 +1,8 @@
+# Options +FollowSymLinks
+RewriteEngine on
+
+# todo ($1) aquello que no (^) sea la lista... 
+RewriteCond   $1             !^(favicon\.ico|favicon\.png|assets|img|theme)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php/$1 [L]
