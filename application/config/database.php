@@ -94,7 +94,7 @@ switch (ENVIRONMENT)
       'dsn'	=> '',
       'hostname' => '127.0.0.1', // 'localhost',
       'username' => '', // TOBECOMPLETED
-      'password' => '', // TOBECOMPLETED 
+      'password' => '', // TOBECOMPLETED
       'database' => '', // TOBECOMPLETED
       'dbdriver' => 'postgre', 
       'port'     => 5432, 

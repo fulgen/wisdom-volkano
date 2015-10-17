@@ -99,8 +99,9 @@ class Layer extends CI_Controller {
         
         // get all users to grant the layer
         //var_dump( $this->input );
-        foreach( $this->input->post( 'grant' ) as $user_email )
-          $this->userlayer->set_userlayer_new( $user_email, $layer_name );
+        if( $this->input->post( 'grant' ) ) 
+          foreach( $this->input->post( 'grant' ) as $user_email )
+            $this->userlayer->set_userlayer_new( $user_email, $layer_name );
         // by default, the admin grants herself the layer 
         $this->userlayer->set_userlayer_new( $this->session->userdata( 'email' ), $layer_name );
         
@@ -188,8 +189,9 @@ class Layer extends CI_Controller {
         $this->userlayer->del_userlayer_all( $layer_name );
         
         // get all users to grant the layer
-        foreach( $this->input->post( 'grant' ) as $user_email )
-          $this->userlayer->set_userlayer_new( $user_email, $layer_name );
+        if( $this->input->post( 'grant' ) ) 
+          foreach( $this->input->post( 'grant' ) as $user_email )
+            $this->userlayer->set_userlayer_new( $user_email, $layer_name );
         // by default, the admin grants herself the layer 
         $this->userlayer->set_userlayer_new( $this->session->userdata( 'email' ), $layer_name );
         
@@ -218,15 +220,25 @@ class Layer extends CI_Controller {
           $this->load->model( 'geoserver_model', 'Geoserver' );
           $result = $this->Geoserver->get_all_layers();
           $this->data[ 'layers' ] = array();
-          foreach( $result as $lay )
+          if( $result ) 
           {
-            if( $this->layer->get_layer_exist( $lay ) == FALSE )
+            if( is_array( $result ) )
+            {
+              foreach( $result as $lay )
+              {
+                if( $this->layer->get_layer_exist( $lay ) == FALSE )
+                {
+                  $this->data[ 'layers' ][] = $lay;
+                  // print_r( $this->data['layers'] );
+                }
+              }
+            }
+            else // there's only one
             {
               $this->data[ 'layers' ][] = $lay;
-              // print_r( $this->data['layers'] );
             }
-          } 
-
+          }
+          
           // get the users currently granted
           $this->data[ 'current_users' ] = $this->userlayer->get_layer_users( $layer );
           
@@ -315,7 +327,7 @@ class Layer extends CI_Controller {
       redirect( site_url(), 'refresh' );
     }
   }
-  /* end of function del_layer */
+  /* end of function load */
   
   /**
    * Saves user config (layers visibility, opacity...)

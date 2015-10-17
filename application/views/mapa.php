@@ -1,6 +1,4 @@
 <?php
-// echo var_dump( $this->session->userdata );
-
 defined('BASEPATH') OR exit('No direct script access allowed');
 ?><!DOCTYPE html>
 <html lang="en">
@@ -8,70 +6,34 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 	<meta charset="utf-8"/>
 
   <link href="<?php echo base_url('assets/css/bootstrap.min.css'); ?>" rel="stylesheet" />
-  
   <link rel="stylesheet" href="<?php echo base_url('assets/css/ol.css');?>" type="text/css" />
   <link rel="stylesheet" href="<?php echo base_url('assets/css/range.css');?>" type="text/css" />
+  <link href="<?php echo base_url('assets/css/map.css'); ?>" rel="stylesheet" />  
+  
+<!-- openlayers and maps -->
   <script src="<?php echo base_url('assets/js/ol.js');?>" type="text/javascript"></script>
   <script src="<?php echo base_url('assets/js/jquery-2.1.4.min.js');?>" type="text/javascript"></script>
-    <style type="text/css">
-      .ol-popup {
-        position: absolute;
-        background-color: white;
-        -webkit-filter: drop-shadow(0 1px 4px rgba(0,0,0,0.2));
-        filter: drop-shadow(0 1px 4px rgba(0,0,0,0.2));
-        padding: 15px;
-        border-radius: 10px;
-        border: 1px solid #cccccc;
-        bottom: 12px;
-        left: -50px;
-        width: 250px;
-      }
-      .ol-popup:after, .ol-popup:before {
-        top: 100%;
-        border: solid transparent;
-        content: " ";
-        height: 0;
-        width: 0;
-        position: absolute;
-        pointer-events: none;
-      }
-      .ol-popup:after {
-        border-top-color: white;
-        border-width: 10px;
-        left: 48px;
-        margin-left: -10px;
-      }
-      .ol-popup:before {
-        border-top-color: #cccccc;
-        border-width: 11px;
-        left: 48px;
-        margin-left: -11px;
-      }
-      .ol-popup-closer {
-        text-decoration: none;
-        position: absolute;
-        top: 2px;
-        right: 8px;
-      }
-      .ol-popup-closer:after {
-        content: "✖";
-      }
-      body.dragging, body.dragging * {
-        cursor: move !important;
-      }
-    </style>
+  <script type="text/javascript"
+ src="http://maps.googleapis.com/maps/api/js?key=<?php echo $this->config->item( 'gmaps_key' ); ?>&sensor=TRUE"></script>
+  <script type="text/javascript" src="<?php echo base_url('assets/js/ol-source-gmaps-tms.min.js');?>"></script>  
+
+<!-- timeseries -->  
+  <script src="<?php echo base_url('assets/js/highcharts.js');?>" type="text/javascript"></script>
+  <script src="<?php echo base_url('assets/js/data.js');?>" type="text/javascript"></script>
+  <script src="<?php echo base_url('assets/js/exporting.js');?>" type="text/javascript"></script>
+  <script src="<?php echo base_url('assets/js/ts-empty.js');?>" type="text/javascript"></script>
   
   <title>Home | wisdom-volkano</title>
 </head>
 <body>
-  <div class="container">
+  <div class="container-fluid">
       <div class="row Navigation">
-          <div class="menu col-xs-12">
+          <div class="menu col-lg-12">
             <?php echo menu('home'); ?>
           </div>
       </div>
       <div class="row Main">
-          <div class="layers col-md-3" id="layers">
+          <div class="layers col-lg-3" id="layers">
 
             <?php echo form_open( 'layer/load', 'class="form-horizontal form-inline" id="f"'); ?>
               
@@ -86,7 +48,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                       <div class="modal-dialog">
                           <div class="modal-content">
                               <div class="modal-header">
-                                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&#x274E;</button>
                                   <h4 class="modal-title">Please sort and select layers to load:</h4>
                               </div>
                               <div class="modal-body">
@@ -100,7 +62,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                     $loaded = ( $layers[ $i ]->config_loaded == 1 );
                                     echo form_checkbox( 'grant[]', $layers[$i]->layer, $loaded ) . $layers[$i]->layer;
                                     echo "</li>\n";
-                                    // TBD: paginado? search?
                                   }
                                   echo "</ol>\n";
                                   echo "<p class='text-warning'><small>You may drag and drop layers to sort them. Please maintain layers within the same workspace grouped or some may not be shown. If you don't save, your changes will be lost.</small></p>";
@@ -121,13 +82,19 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
                 <div id="bg" class="collapse">
                   <fieldset id="layer0">
-                    <input id="visible0" class="visible" type="checkbox" />&nbsp;bg:OpenStreetMaps<input id="opac0" class="opacity" type="range" min="0" max="1" step="0.01"/>
+                    <input id="visible0" class="visible" type="checkbox" />&nbsp;bg:GoogleMaps<input id="opac0" class="opacity" type="range" min="0" max="1" step="0.01"/>
                   </fieldset>
                   <fieldset id="layer1">
-                    <input id="visible1" class="visible" type="checkbox" />&nbsp;bg:MapBox<input id="opac1" class="opacity" type="range" min="0" max="1" step="0.01"/>
+                    <input id="visible1" class="visible" type="checkbox" />&nbsp;bg:OpenStreetMaps<input id="opac1" class="opacity" type="range" min="0" max="1" step="0.01"/>
+                  </fieldset>
+                  <fieldset id="layer2">
+                    <input id="visible2" class="visible" type="checkbox" />&nbsp;bg:Seismo stations<input id="opac2" class="opacity" type="range" min="0" max="1" step="0.01"/>
+                  </fieldset>
+                  <fieldset id="layer3">
+                    <input id="visible3" class="visible" type="checkbox" />&nbsp;bg:GPS stations<input id="opac3" class="opacity" type="range" min="0" max="1" step="0.01"/>
                   </fieldset>
 <?php 
-    $i = 2; // counting from backgrounds on
+    $i = 4; // counting from backgrounds on
     $ws_current = ""; // one collapse panel per workspace
     if( is_array( $layers ) ) // substr( $layers, 0, 5 ) != "Error" )
     {
@@ -165,13 +132,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 <h3 class="panel-title">Config panel</h3>
               </div>
               <div class="panel-body">
-                To be completed in iteration 2.
+                To be completed in iteration 3.
               </div>
             </div>          
           
           </div>
           
-          <div class="map col-md-9" id="map">
+          <div class="map col-lg-9" id="map">
             <div id="popup" class="ol-popup">
                 <a href="#" id="popup-closer" class="ol-popup-closer"></a>
                 <div id="popup-content"></div>
@@ -180,48 +147,34 @@ defined('BASEPATH') OR exit('No direct script access allowed');
           
       </div>
       <div class="row Timeseries">
-          <div class="graph col-md-6">
+          <div class="graph col-lg-12">
               <div class="panel panel-default">
                 <div class="panel-body">
-                  Timeseries graph. To be completed in iteration 2.
+                  <div id="container" style="height: 250px; max-height: 250px;"></div>
                 </div>
               </div>            
           </div>
-          
-          <div class="data col-md-6">
-              <div class="panel panel-default">
-                <div class="panel-body" style="min-height: 100px; max-height: 100px; height: 100px; overflow-y: scroll;">
-                  <table class="table table-condensed table-hovered table-bordered">
-                    <tr class="table-info"><th>date</th><th>p1</th><th>p2</th><th>p3</th></tr>
-                    <tr>
-                      <td>23.10.2011</td>
-                      <td>value X</td>
-                      <td>value X</td>
-                      <td>value X</td>
-                    </tr>
-                    <tr>
-                      <td>09.11.2011</td>
-                      <td>value X</td>
-                      <td>value X</td>
-                      <td>value X</td>
-                    </tr>
-                    <tr>
-                      <td>18.11.2011</td>
-                      <td>value X</td>
-                      <td>value X</td>
-                      <td>value X</td>
-                    </tr>
-                    <tr>
-                      <td>01.12.2011</td>
-                      <td>value X</td>
-                      <td>value X</td>
-                      <td>value X</td>
-                    </tr>
-                  </table>
-                  Timeseries data sheet. To be completed in iteration 2.
-                </div>
-              </div>            
-          </div>
+
+                  <!-- Modal HTML -->
+                  <div id="modalTS" class="modal fade">
+                      <div class="modal-dialog">
+                          <div class="modal-content">
+                              <div class="modal-header">
+                                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&#x274E;</button>
+                                  <h4 class="modal-title">Please select timeseries to load:</h4>
+                              </div>
+                              <div class="modal-body" id="modalTSbody"></div>
+                              <div class="modal-body">
+                                <p class="text-warning"><small>You may drag and drop timeseries to sort them, but only the first enabled type will be shown. If you don&quot;t save, your changes will be lost.</small></p>          
+                              </div>
+                              <div class="modal-footer">      
+                                <button type="button" id="buttonts" class="btn btn-primary">Reload chart</button>
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>                              
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+
       </div>
   </div>
   
@@ -229,40 +182,51 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <script type="text/javascript">
       var listLayers = [ 
           new ol.layer.Tile({
-            title: "bg-osm",
-            source: new ol.source.OSM()
+            title: "gmaps",
+            source: ol.source.GMapsTMS({layer: 'satellite'})  
           }),
           new ol.layer.Tile({
-            title: "bg-mapbox",
-            source: new ol.source.TileJSON({
-              url: 'http://api.tiles.mapbox.com/v3/' +
-                  'mapbox.natural-earth-hypso-bathy.jsonp',
-              crossOrigin: 'anonymous'
+            title: "bg-osm",
+            source: new ol.source.OSM()
+          }), 
+          new ol.layer.Vector({
+            source: new ol.source.Vector({
+              url: "/assets/data/stations/Seismos.kml",
+              format: new ol.format.KML()
             })
-          })          
+          }), 
+          new ol.layer.Vector({
+            source: new ol.source.Vector({
+              url: "/assets/data/stations/GPS.kml",
+              format: new ol.format.KML()
+            })
+          }) 
 <?php           
-  $i = 2; // Counting from background
-    if( is_array( $layers ) ) // substr( $layers, 0, 5 ) != "Error" )
+  $i = 4; // Counting from background
+  if( is_array( $layers ) ) // substr( $layers, 0, 5 ) != "Error" )
+  {
+    foreach( $layers as $layer )
     {
-      foreach( $layers as $layer )
+      // print_r( $layer );
+      if( $layer->config_loaded == 1 )
       {
-        // print_r( $layer );
-        if( $layer->config_loaded == 1 )
-        {
-          echo "  ,\n";
-          echo "      new ol.layer.Tile({ \n";
-          echo "      title: '" . $layer->layer . "', \n";
-          echo "      source: new ol.source.TileWMS({ \n";
-          echo "        url: '" . $this->config->item( 'geoserver_url' ); // http://127.0.0.1:8080/geoserver/";
-          $ws = substr( $layer->layer, 0, strpos( $layer->layer, ":" ) );
-          echo $ws . "/wms', \n";
-          echo "        params: {LAYERS: '" . $layer->layer . "'} \n";
-          echo "      }) \n";
-          echo "  }) \n";
-          $i ++;
-        }
+        echo "  ,\n";
+        echo "      new ol.layer.Tile({ \n";
+        echo "      title: '" . $layer->layer . "', \n";
+        echo "      source: new ol.source.TileWMS({ \n";
+        echo "        url: '" . $this->config->item( 'geoserver_url' ); // http://127.0.0.1:8080/geoserver/";
+        $ws = substr( $layer->layer, 0, strpos( $layer->layer, ":" ) );
+        echo $ws . "/wms', \n";
+        echo "        params: {                                     \n";
+        echo "                   'LAYERS': '" . $layer->layer . "'  \n";
+        echo "                 , 'TILED': true                      \n";
+        echo "                }                                     \n";
+        echo "      }) \n";  
+        echo "  }) \n";
+        $i ++;
       }
     }
+  }
 ?>          
       ];
 
@@ -342,25 +306,120 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         }
       });
       
-      
-
-
       /**
        * Add a click handler to the map to render the popup.
        */
       map.on('singleclick', function(evt) {
+        var pixel = evt.pixel;
+        var featSis = map.forEachFeatureAtPixel(pixel, function(featSis, layer) {
+          return featSis;
+        }, null, function( layer ) {
+          return layer === listLayers[ 2 ]; // seism station
+        });        
+        var featGPS = map.forEachFeatureAtPixel(pixel, function(featGPS, layer) {
+          return featGPS;
+        }, null, function( layer ) {
+          return layer === listLayers[ 3 ]; // GPS station
+        });        
         var coordinate = evt.coordinate;
-        var hdms = ol.coordinate.toStringHDMS(ol.proj.transform(
-            coordinate, 'EPSG:3857', 'EPSG:4326'));
+        var coord = ol.proj.transform( coordinate, 'EPSG:3857', 'EPSG:4326' );
+        // var hdms = ol.coordinate.toStringHDMS( coord ); // º, ' and "
+        var hdms = ol.coordinate.toStringXY( coord, 3 ); // º with 3 decimal
+        // console.log( coord[0] + ' ' + coord[1] );
+        
+        var ts_type = ''; var src = '';
+        if( featSis ) // on a Sismo station
+        {
+          ts_type = 'histogram';
+          src = '<p>Seismic station: ' + featSis.get('name');
+        <?php
+          $but = 0;
+          if( is_array( $ts ) ) 
+          {
+            foreach( $ts as $tss ) 
+            {
+              if( $tss->ts_type == 'histogram' )
+              {
+        ?>
+        if( featSis.get('name') == '<?php echo $tss->ts_name; ?>' )
+        {
+          src = src + '<br/>Load the histogram:</p>';
+          src = src + '<button id="but<?php echo $but ++; ?>" type="button" ' +
+                    ' onclick="load_async( \'<?php echo $tss->ts_type; ?>\', \'<?php echo $tss->ts_name; ?>\',' + coord[0] + ', ' + coord[1] + 
+                    '  );" class="btn btn-primary btn-xs"><?php echo $tss->ts_name; ?></button> '; 
+        }
+        else
+        {
+          src = src + '<br/>No histogram found. You may add it with timeseries create.</p>'
+        }
+        <?php
+              }
+            }
+          }
+        ?>
+        }
+        else if( featGPS )
+        {
+          ts_type = 'GPS';
+          src = '<p>GPS station: ' + featGPS.get('name') + '</p>';
+        }
+        else // msbas
+        {
+          ts_type = 'msbas';
+        <?php
+          $but = 0;
+          if( is_array( $ts ) ) 
+          {
+            foreach( $ts as $tss )
+            {
+              if( $tss->ts_type == 'msbas' )
+              {
+        ?>
+        // console.log( 'check boundaries: lon ' + coord[0] + ' within left <?php echo $left; ?>, right <?php echo $right; ?>' );
+        // console.log( 'check boundaries: lat ' + coord[1] + ' within top <?php echo $top; ?>, down <?php echo $down; ?> ' ); 
+        // within the ts boundaries
+        if( coord[0] >= <?php echo $left; ?> 
+         && coord[0] <= <?php echo $right; ?> 
+         && coord[1] <= <?php echo $top; ?> 
+         && coord[1] >= <?php echo $down; ?> )  // coord[1] is negative!
+        {
+          // console.log( 'ok, within boundaries' );
+          src = src + '<button id="but<?php echo $but ++; ?>" type="button" ' +
+                      ' onclick="load_async( \'<?php echo $tss->ts_type; ?>\', \'<?php echo $tss->ts_name; ?>\', ' + coord[0] + ', ' + coord[1] + 
+                      '  );" class="btn btn-primary btn-xs"><?php echo $tss->ts_name ?></button> '; 
+        }
+        else
+        {
+          // console.log( 'out of boundaries' );
+          src = '<p>Out of boundaries of the timeseries configured.</p>';
+        }
 
-        content.innerHTML = '<p>You clicked here:</p><code>' + hdms +
-            '</code>';
+        <?php
+              }
+            }
+          }
+          if( $but == 0 )
+          {
+            ?>
+            src = '<p>No msbas timeseries configured for this point, please ask the admin to create or grant you some.</p>';
+            <?php
+          }
+          else
+          {
+            ?>
+            src = '<code>' + hdms + '</code><br/><p>Load the timeseries-msbas: </p>' + src;
+            <?php  
+          }
+        ?>
+        }
+        content.innerHTML = src;
         overlay.setPosition(coordinate);
       });
 
       $(function  () {
         $("ol.sortable").sortable();
       });
+      
     </script>
     
     <!-- jQuery is necessary for Bootstrap but already loaded -->

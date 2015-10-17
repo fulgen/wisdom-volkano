@@ -4,19 +4,40 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 switch (ENVIRONMENT)
 {
 	case 'development':
-    $config['geoserver_rest'] = 'http://127.0.0.1:8080/geoserver/rest/workspaces/';
+    // geoserver
+    $config['geoserver_rest']    = 'http://127.0.0.1:8080/geoserver/rest/workspaces/';
     $config['geoserver_userpwd'] = 'user:password'; // TOBECOMPLETED
+    
+    // timeseries folders
+    $config['bar_slash']         = '\\';
+    $config['folder_msbas']      = 'local_folder'; // TOBECOMPLETED
+    $config['folder_msbas_ras']  = '\\RASTERS\\'; // example:  .../msbas/name_of_ts/RASTERS
+    $config['folder_msbas_ts']   = '\\Time_Series\\'; // example:  .../msbas/name_of_ts/Time_Series
+    $config['uri_msbas_ras']  = '/RASTERS/'; // example:  .../msbas/name_of_ts/RASTERS
+    $config['uri_msbas_ts']   = '/Time_Series/';  // example:  .../msbas/name_of_ts/Time_Series
+    $config['folder_histogram']  = 'other_local_folder'; // TOBECOMPLETED
     break;
 	case 'testing':
 	case 'production':
-    $config['geoserver_rest'] = 'http://127.0.0.1:8080/geoserver/rest/workspaces/';
+    // geoserver
+    $config['geoserver_rest']    = 'http://127.0.0.1:8080/geoserver/rest/workspaces/';
     $config['geoserver_userpwd'] = 'user:password'; // TOBECOMPLETED
+    
+    // timeseries folders
+    $config['bar_slash']         = '/';
+    $config['folder_msbas']      = 'local_folder'; // TOBECOMPLETED
+    $config['folder_msbas_ras']  = '/RASTERS/'; // example:  .../msbas/name_of_ts/RASTERS
+    $config['folder_msbas_ts']   = '/Time_Series/';  // example:  .../msbas/name_of_ts/Time_Series
+    $config['uri_msbas_ras']  = '/RASTERS/'; // example:  .../msbas/name_of_ts/RASTERS
+    $config['uri_msbas_ts']   = '/Time_Series/';  // example:  .../msbas/name_of_ts/Time_Series
+    $config['folder_histogram']  = 'other_local_folder'; // TOBECOMPLETED
     break;
 }
 
-
+ 
 $serv = "http://" . $_SERVER[ 'SERVER_NAME' ] . ":8080/geoserver/";
 $config['geoserver_url'] = $serv;
+$config['gmaps_key'] = "Google Maps API key"; // TOBECOMPLETED 
 
 
 /*

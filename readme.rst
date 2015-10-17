@@ -5,24 +5,36 @@ wisdom-volkano
 Web Interface for Sharing Data On Monitoring Volkano
 (swahili for volcano, from portuguese volcão)
 
+wisdom-volkano is built on top of CodeIgniter 3.0.2 and OpenLayers 3.7.0. 
+
 *******************
 Release Information
 *******************
 
-This is a first iteration out of three. 
-Next one is foreseen in November 2015.
+This is the second iteration out of three. 
+Next one is foreseen in February 2016.
 
 
 **************************
 Changelog and New Features
 **************************
 
+Second iteration (October 2015):
+- user manual update
+- fr3.1: click on a raster loads the time series of the pixel as chart with time as X-axis 
+- fr9: save time series pixel values
+- fr13: calculate timeseries from raster stack if it does not exist
+- fr14: calculate and load histogramme (seismic counting data)
+- google maps added as a background
+- layers of seismic and GNSS stations added as backgrounds
+
+First iteration (July 2015):
 - user manual
 - fr1: basic gis: zoom, pan, 2 external rasters (gmaps, osm), rasters and features
 - fr2: select pixel
 - fre1: data security: login, admin, layer-user
 - fr10: add layers 
-
+- fro1: portability vs update of the system 
 
 
 *******************
@@ -33,7 +45,7 @@ Tested in Ubuntu 12.04 and Windows 7 and 8.
 PHP version 5.4 or newer is recommended. 
 Apache 2.2.x
 PostgreSQL 9.x + PostGIS 2.1.x
-Geoserver version 2.7 on Tomcat 7
+Geoserver version 2.7 on Tomcat 7, on Java 7
 
 
 ************
@@ -63,6 +75,8 @@ EUPL v1.1
 EUPL is an acronym  for “European Union Public Licence”. The EUPL is the first European Free/Open Source Software (F/OSS) licence. It has been created on the initiative of the European Commission. It is now approved by the European Commission in 22 linguistic versions and can be used by anyone for software distribution.
 
 Please see the licence in the eupl1.1.-licence-en.pdf or in any other language in <https://joinup.ec.europa.eu/software/page/eupl/licence-eupl>
+
+No file data is included in this delivery, being the property of ECGS.
 
 *********
 Resources

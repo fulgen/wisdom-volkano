@@ -12,14 +12,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 <body>
 
 <body>
-  <div class="container">
+  <div class="container-fluid">
       <div class="row Navigation">
-          <div class="menu col-xs-12">
+          <div class="menu col-lg-12">
             <?php echo menu('Help'); ?>
           </div>
       </div>
       <div class="row Main">
-          <div class="col-md-9">
+          <div class="col-lg-9">
 
           
 <h1 id="help">Help of wisdom-volkano</h1>
@@ -148,7 +148,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 
 <h3 id="admin-layers-ci">Layers - wisdom-volkano</h3>
-<p>Layer administration is the other option only available for administrators in the menu. The submenu has two options: </p>
+<p>The layer administration submenu has two options: </p>
 <ul>
   <li>List layers</li>
   <li>Create a new layer</li>
@@ -171,9 +171,68 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 <ul>
   <li>Select layer from a dropdown of workspace:name_layers. These are the ones made available in the GeoServer layers above.</li>
   <li>Type of layer: raster, dem, feature (point, line, polygon). This has no use for the moment.</li>
-  <li>Description.</li>
+  <li>Description: optional.</li>
   <li>Users to grant the use of the layer.</li>
 </ul>  
+
+<h3 id="admin-ts-ci">Timeseries</h3>
+<p>The timeseries administration submenu has two options: </p>
+<ul>
+  <li>List timeseries</li>
+  <li>Create a new timeseries</li>
+</ul>
+
+<h4>List timeseries</h4>
+<p>All timeseries already configured in wisdom-volkano will be listed here, with a number of data:</p>
+<ul>
+  <li>Who created the timeseries.</li>
+  <li>The timeseries name as given.</li>
+  <li>What type the timeseries is, see below.</li>
+  <li>Which users are granted the use of the timeseries.</li>
+  <li>And the only action available for each timeseries: delete.</li>
+</ul>
+<div class="alert alert-info" role="alert">Timeseries are not really created or deleted in wisdom-volkano - both are only possible in the file system. Create in this context means referencing the folder in which the files are; delete means just removing the reference: the files and the folder will be available to be created (referenced) again.</div>
+
+<h4>Create a new timeseries</h4>
+<p>A timeseries created in wisdom-volkano is actually a link to a folder with two subfolders: one with the rasters, and another with the timeseries files. In order to create a new timeseries, this folder structure must be already in place, with its links declared in the file <code>application/config/config.php</code> like:</p>
+<ul>
+  <li>folder_msbas: base folder in the file system where all the timeseries that can be created will be;</li>
+  <li>folder_msbas_ras: the subfolder with the stack of raster files; default is <code>RASTERS</code>;</li>
+  <li>folder_msbas_ts: the subfolder with the timeseries files; default is <code>Time_Series</code>;</li>
+  <li>folder_histogram: same as folder_msbas but for the histogram files (no need of further folders here).</li>
+</ul>
+<p>When creating a timeseries, the first option is the type. Selecting one will display a different form:</p>
+<ul>
+  <li>msbas</li>
+  <li>histogram</li>
+</ul>
+
+<h4>msbas timeseries</h4>
+<p>The fields for msbas timeseries are:</p>
+<ul>
+  <li>Time series name: for giving a name. A short one is suggested, like "EW" or "UP-detrended".</li>
+  <li>Time series file or group folder: it lists the folders available in the folder_msbas above from the configuration. Usually there will be two, EW and UP.</li>
+  <li>Raster file found: once selected a folder, here it will be shown one raster file from the folder_msbas_ras above.</li>
+  <li>Raster filename - date starts at: for the stack of raster files, the important part in the file name is the date. wisdom-volkano will try to find out where it is, but it can be edited. The format is YYYYMMDD.</li>
+  <li>Example date: following the two previous values.</li>
+  <li>Raster coords - lat top: this value is read from the header file of the rasters. It shows the latitude coordinate (in degrees, North from Equator is positive, South is negative).</li>
+  <li>Raster coords - lon left: this value is read from the header file of the rasters. It shows the longitude coordinate (in degrees, East from Greenwich is positive, West is negative).</li>
+  <li>Raster coords - lat increment (degrees per pixel): this value is read from the header file of the rasters. It shows the latitude coordinate increment (in degrees per pixel of the image, value always positive).</li>
+  <li>Raster coords - lon increment (degrees per pixel): this value is read from the header file of the rasters. It shows the longitude coordinate increment (in degrees per pixel of the image, value always positive).</li>
+  <li>Ts file found: once selected a folder, here it will be shown one timeseries file from the folder_msbas_ts above.</li>
+  <li>Ts file - coords (NNN_NNN) starts at: for the timeseries files, the important part in the file name is the coordinate. wisdom-volkano will try to find out where they are, but it can be edited. The format is XXX_YYY (XXX is longitude-pixel or x, y is latitude-pixel or y; both are positive).</li>
+  <li>Example coords: following the two previous values.</li>
+  <li>Description: optional.</li>
+  <li>Users to grant the use of the timeseries.</li>
+</ul>
+
+<h4>histogram timeseries</h4>
+<p>The fields for histogram-like (seismic) timeseries are:</p>
+<ul>
+  <li>Time series name: for giving a name. A short one is suggested, like the same acronym of the seismic station.</li>
+  <li>Time series file or group folder: it lists the files available in the folder_histogram above from the configuration. Usually there will be one per station in TSV format.</li>
+  <li>Seismic station: name of the station. It must match the name in the background layer "Seismo stations".</li>
+</ul>
 
 <?php
     } // end of admin 
@@ -194,9 +253,16 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 <ul>
   <li>Zoom: either clicking on the +/- buttons, or with the scroll button on your keyboard or mouse (wheel), you may zoom in and out in the map. The scale at the bottom left will be updated depending on the zoom.</li> 
   <li>Pan: you may click with the mouse, hold the click and drag around to pan. North is up.</li>
-  <li>Click: when clicking and not holding with the mouse, a small announcement with the coordinates will be shown. In future iterations, this will be related to the <a href="config" title="Configuration panel">Configuration</a>, <a href="chart" title="Chart panel">Chart</a> and the <a href="data" title="Data panel">Data</a> panels.</li>
+  <li>Click: when clicking and not holding with the mouse, a small announcement with the available timeseries. Any timeseries clicked will be loaded and shown in the <a href="chart" title="Chart panel">Chart panel</a>.</li>
 </ul>
-<p>By default, when entering the system for the first time and no <a href="layers" title="Layers panel">layers</a> are added yet, wisdom-volkano is configured by default with some backgrounds.</p>
+<p>By default, when entering the system for the first time and no <a href="layers" title="Layers panel">layers</a> are added yet, wisdom-volkano is configured by default with some backgrounds, visible by default:</p>
+<ul>
+  <li>Google Maps: satellite view</li>
+  <li>Open Street Maps</li>
+  <li>Seismo stations</li>
+  <li>GPS stations</li>
+</ul>
+<p alert="alert alert-info">Hint: when wishing to click on a point which is partially hidden behind a feature (for example, an icon of a station), one can zoom in and the point will be shown.</p>
 
 <h3 id="layers">Layers panel</h3>
 <p>Layers are shown grouped by workspace. By default, some backgrounds are available. When it is your first time in wisdom-volkano, click on <a href="#manage-layers" title="Manage layers">Manage layers</a>:
@@ -215,13 +281,30 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 </ul>
 
 <h3 id="config">Config panel</h3>
-<p>Iteration 2.</p>
+<p>Iteration 3.</p>
 
 <h3 id="chart">Chart panel</h3>
-<p>Iteration 2.</p>
+<p>By default, when entering the system there will be no timeseries loaded and this panel will be empty. When clicking on the map, wisdom-volkano will show the adequate timeseries: coordinates and configured msbas timeseries, or seismic stations. For msbas, if the timeseries file corresponding to the clicked point does not exist, it will be calculated and the file placed in the same folder. </p>
+<p class="alert alert-warning">Warning: selecting a new type of timeseries will cause the previous one to be lost. For example, if three msbas points are shown and then a histogram timeseries is clicked on a seismic station, the msbas visualization will be lost (though not the files generated).</p>
 
-<h3 id="data">Data panel</h3>
-<p>Iteration 2.</p>
+<h4>Functionalities in the Chart panel:</h4>
+<ul>
+  <li>Chart: the values (X-axis) ordered in a time line (Y-axis).</li>
+  <li>Tooltip: when moving the cursor over the chart, the value and the date will be shown.</li>
+  <li>Zoom: if clicked and drag on the map, the user can make a zoom on the timeline (Y-axis). It can be done several times. To return to the initial chart, click on the new button, Reset zoom.</li>
+  <li>Legend: on the top of the chart there will be the legend of the points. They can be disabled in the visualization clicking on the name in the legend, and enabled clicking again. The visualization (both axis) will adapt to the available values.</li>
+  <li>Handle button (left of the title, square with three lines): see below.</li>
+</ul>
+<p class="alert alert-info">Hint: sometimes the tooltip can hide the legend or even the handle button. To avoid it, try moving the mouse to a side and then "enter" the chart from above (i.e., moving it vertically from the map to the chart).</p>
+
+<h4>The chart handle</h4>
+The chart handle has the following options when clicked:</p>
+<ul>
+  <li>manage timeseries: the list of the timeseries loaded will be shown, similar to the legend. Points can be removed unchecking the box, and reordered by drag and drop. To show the changes, click on Reload chart.</li>
+  <li>export to PNG: the current image of the chart can be exported to PNG format.</li>
+</ul>
+
+<p class="alert alert-warning">Please note that the configuration of timeseries and layers is not (yet) saved when logging out. It will be done in iteration 3.</p>
 
 <h2 id="ref">References</h2>
 
@@ -235,7 +318,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
           </div>
 
 
-        <div class="col-md-3" role="complementary">
+        <div class="col-lg-3" role="complementary">
           <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm">
             <ul class="nav bs-docs-sidenav">
 
@@ -253,6 +336,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <li><a href="#admin-users-ci">Users wisdom-volkano</a></li>
     <li><a href="#admin-layers-geo">Layers Geoserver</a></li>
     <li><a href="#admin-layers-ci">Layers wisdom-volkano</a></li>
+    <li><a href="#admin-ts-ci">Timeseries</a></li>
   </ul>
 </li>
 <?php
@@ -269,7 +353,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <li><a href="#visib-layers">Layers visibility</a></li>
     <li><a href="#config">Config panel</a></li>
     <li><a href="#chart">Chart panel</a></li>
-    <li><a href="#data">Data panel</a></li>
   </ul>
 </li>
 <li>

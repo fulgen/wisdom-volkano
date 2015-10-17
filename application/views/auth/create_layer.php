@@ -48,7 +48,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
            ?></div>
       </div>
       <div class="form-group">
-          <label for="institution" class="col-xs-2 control-label">Layer description</label>
+          <label for="layer_description" class="col-xs-2 control-label">Layer description</label>
           <div class="col-xs-10">
           <textarea class="form-control" id="layer_description" name="layer_description" placeholder="enter Layer description"></textarea></div>
       </div>

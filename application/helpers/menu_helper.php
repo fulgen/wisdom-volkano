@@ -51,6 +51,11 @@ if ( ! function_exists('menu'))
       
       $ret .= "  <li role='presentation'><a role='menuitem' tabindex='-1' href='" . site_url( '/layer' ) . "'>Layer list</a></li>\n";
       $ret .= "  <li role='presentation'><a role='menuitem' tabindex='-1' href='" . site_url( '/layer/create_layer' ) . "'>Create layer</a></li>\n";
+
+      $ret .= "<li role='presentation' class='divider'></li>\n";
+      
+      $ret .= "  <li role='presentation'><a role='menuitem' tabindex='-1' href='" . site_url( '/timeseries' ) . "'>Time series list</a></li>\n";
+      $ret .= "  <li role='presentation'><a role='menuitem' tabindex='-1' href='" . site_url( '/timeseries/create_ts' ) . "'>Create time series</a></li>\n";
       
       $ret .= "</ul></li>\n";
     }

@@ -159,7 +159,7 @@ class Userlayer_model extends CI_Model {
 
     if( $this->db->affected_rows() == 0 )
     {
-      log_message( 'error', 'app/model/userlayer/E-016 Error cannot revoke grants on layer ' . $this->layer . '.' );
+      log_message( 'error', 'app/model/userlayer/E-010 Error cannot revoke grants on layer ' . $this->layer . '.' );
     }
     return;
   }
