@@ -64,14 +64,13 @@ $query_builder = TRUE;
 
 switch (ENVIRONMENT)
 {
-	case 'development':
 	case 'testing':
     $db['default'] = array(
       'dsn'	=> '',
       'hostname' => '127.0.0.1', // 'localhost',
-      'username' => '', // TOBECOMPLETED
-      'password' => '', // TOBECOMPLETED
-      'database' => '', // TOBECOMPLETED
+      'username' => 'user',
+      'password' => 'pwd',
+      'database' => 'dbname', 
       'dbdriver' => 'postgre', 
       'port'     => 5432, 
       'dbprefix' => '',
@@ -93,9 +92,9 @@ switch (ENVIRONMENT)
     $db['default'] = array(
       'dsn'	=> '',
       'hostname' => '127.0.0.1', // 'localhost',
-      'username' => '', // TOBECOMPLETED
-      'password' => '', // TOBECOMPLETED
-      'database' => '', // TOBECOMPLETED
+      'username' => 'user',
+      'password' => 'pwd',
+      'database' => 'dbname-prod', 
       'dbdriver' => 'postgre', 
       'port'     => 5432, 
       'dbprefix' => '',

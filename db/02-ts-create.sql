@@ -40,6 +40,7 @@ CREATE TABLE user_timeseries
   config_opacity integer DEFAULT 100,
   config_order integer,
   config_loaded integer DEFAULT 0,
+  config_msbas text, -- Json'd ordered list of msbas points
   CONSTRAINT user_ts_pkey PRIMARY KEY (user_email, ts_name),
   CONSTRAINT fk_timeseries FOREIGN KEY (ts_name)
       REFERENCES timeseries (ts_name) MATCH SIMPLE

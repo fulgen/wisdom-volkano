@@ -1,27 +1,28 @@
-<?xml version="1.0" encoding="UTF-8"?><sld:StyledLayerDescriptor xmlns="http://www.opengis.net/sld" xmlns:sld="http://www.opengis.net/sld" xmlns:ogc="http://www.opengis.net/ogc" xmlns:gml="http://www.opengis.net/gml" version="1.0.0">
-  <sld:NamedLayer>
-    <sld:Name>A42Nyiragongo32160_32661_AutoGEOC_VV_LonLatCintFilt_Bp-108.1m_35days_Ha157.7m</sld:Name>
-    <sld:UserStyle>
-      <sld:Name>sld_cint</sld:Name>
-      <sld:FeatureTypeStyle>
-        <sld:Rule>
-          <sld:RasterSymbolizer>
-            <sld:Geometry>
-              <ogc:PropertyName>grid</ogc:PropertyName>
-            </sld:Geometry>
-            <sld:ColorMap>
-              <sld:ColorMapEntry color="#d7191c" opacity="1.0" quantity="-2.65112" label="-2.651120"/>
-              <sld:ColorMapEntry color="#f07c4a" opacity="1.0" quantity="-1.7926" label="-1.792600"/>
-              <sld:ColorMapEntry color="#fdc980" opacity="1.0" quantity="-0.93408" label="-0.934080"/>
-              <sld:ColorMapEntry color="#ffffbf" opacity="1.0" quantity="-0.07556" label="-0.075560"/>
-              <sld:ColorMapEntry color="#c7e8ad" opacity="1.0" quantity="0.78296" label="0.782960"/>
-              <sld:ColorMapEntry color="#80bfab" opacity="1.0" quantity="1.64148" label="1.641480"/>
-              <sld:ColorMapEntry color="#2b83ba" opacity="1.0" quantity="2.5" label="2.500000"/>
-              <sld:ColorMapEntry color="#d7191c" opacity="1.0" quantity="2.5" label="2.500001"/>
-            </sld:ColorMap>
-          </sld:RasterSymbolizer>
-        </sld:Rule>
-      </sld:FeatureTypeStyle>
-    </sld:UserStyle>
-  </sld:NamedLayer>
-</sld:StyledLayerDescriptor>
+<?xml version="1.0" encoding="UTF-8"?>
+<StyledLayerDescriptor version="1.0.0" xmlns="http://www.opengis.net/sld" xmlns:ogc="http://www.opengis.net/ogc"
+  xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.0.0/StyledLayerDescriptor.xsd">
+  <NamedLayer>
+    <Name>A42Nyiragongo32160_32661_AutoGEOC_VV_LonLatCintFilt_Bp-108.1m_35days_Ha157.7m</Name>
+    <UserStyle>
+      <Name>sld_cint</Name>
+      <FeatureTypeStyle>
+        <Rule>
+          <RasterSymbolizer>
+            <Opacity>1.0</Opacity>
+            <ColorMap>
+              <ColorMapEntry color="#d7191c" quantity="-2.65112" label="-2.651120"/>
+              <ColorMapEntry color="#f07c4a" quantity="-1.7926" label="-1.792600"/>
+              <ColorMapEntry color="#fdc980" quantity="-0.93408" label="-0.934080"/>
+              <ColorMapEntry color="#ffffbf" quantity="-0.07556" label="-0.075560"/>
+              <ColorMapEntry color="#c7e8ad" quantity="0.78296" label="0.782960"/>
+              <ColorMapEntry color="#80bfab" quantity="1.64148" label="1.641480"/>
+              <ColorMapEntry color="#2b83ba" quantity="2.5" label="2.500000"/>
+              <ColorMapEntry color="#d7191c" quantity="2.500001" label="2.500001"/>
+            </ColorMap>
+          </RasterSymbolizer>
+        </Rule>
+      </FeatureTypeStyle>
+    </UserStyle>
+  </NamedLayer>
+</StyledLayerDescriptor>

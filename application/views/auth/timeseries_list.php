@@ -1,6 +1,5 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
-// TBD
 ?><!DOCTYPE html>
 <html lang="en">
 <head>
@@ -54,7 +53,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 echo 'Ts:&nbsp;<small><code>' . htmlspecialchars( $folder . $this->config->item( 'folder_msbas_ts' ) . $timeseries->ts_file_ts, ENT_QUOTES, 'UTF-8' ) . "</code></small><br/>\n";
                                 echo 'Raster:&nbsp;<small><code>' . htmlspecialchars( $folder . $this->config->item( 'folder_msbas_ras' ) . $timeseries->ts_file_raster, ENT_QUOTES, 'UTF-8' ) . "</code></small><br/>\n";
                                 break;
-                              case "histogram":
+                              case "histogram": 
+                              case "gnss": 
                                 echo 'Ts:&nbsp;<small><code>' . htmlspecialchars( $timeseries->ts_file, ENT_QUOTES, 'UTF-8' ) . "</code></small><br/>\n";
                                 break;
                               default: 
@@ -70,6 +70,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 echo  'Increment degrees per pixel (lat,long): (<small><code>' . $timeseries->ts_coord_lat_inc . '</code></small>,<code><small>' . $timeseries->ts_coord_lon_inc . "</code></small>)<br/>\n";
                                 break;
                               case "histogram":
+                              case "gnss":
                                 echo $timeseries->ts_seism_station;
                                 break;
                               default: 
@@ -103,7 +104,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 Confirm time series delete
             </div>
             <div class="modal-body">
-                The time series will be removed from wisdom-volkano (not the file from the disk). Please note that this action will remove any grants to users, and cannot be undone. 
+                The time series will be removed from wisdom-volkano (not the file from the disk). Please note that this action will remove any grants to users, and cannot be undone. <br/>
+                Also, if this timeseries was shown in the current session, the timeseries type will be reset.
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -114,7 +116,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 </div>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="<?php echo base_url('assets/js/jquery-2.1.4.min.js');?>"></script>
+    <script src="<?php echo base_url('assets/js/jquery-2.2.0.min.js');?>"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="<?php echo base_url('assets/js/bootstrap.min.js');?>"></script>
 

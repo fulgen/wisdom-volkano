@@ -67,6 +67,7 @@ class Layer_model extends CI_Model {
     return;
   }
   /* end of function set_layer_edit */
+
   
   /**
    * Delete a layer from the system
@@ -75,7 +76,6 @@ class Layer_model extends CI_Model {
    * @param   the layer 
    * @return	nothing
    * Note: CASCADE delete: it will remove the layer for all users
-   * TBD: Log!
   */
 	function del_layer( $layer )
 	{
@@ -90,7 +90,9 @@ class Layer_model extends CI_Model {
     }
     return $nrows;
   }
+  /* end function del_layer */
 
+  
   /**
    * Get a layer 
    *
@@ -154,7 +156,7 @@ class Layer_model extends CI_Model {
     }
 		return $query->result();
 	}
-		
+  /* end function get_all_layers */
 }
 
 /* End of file layer_model.php */

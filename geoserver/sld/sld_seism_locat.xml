@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="windows-1252"?>
+<StyledLayerDescriptor version="1.0.0" xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd" xmlns="http://www.opengis.net/sld" xmlns:ogc="http://www.opengis.net/ogc" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NamedLayer>
+    <Name>Attribute-based point</Name>
+    <UserStyle>
+      <Title>GeoServer SLD Cook Book: Attribute-based point</Title>
+      <FeatureTypeStyle>
+      
+        <Rule>
+          <Name>mb0_4-year_1995</Name>
+          <Title>magnitude 0 to 4, up to 1995</Title>
+          <ogc:Filter>
+            <ogc:And>
+              <ogc:PropertyIsLessThan>
+                <ogc:PropertyName>mb</ogc:PropertyName>
+                <ogc:Literal>4</ogc:Literal>
+              </ogc:PropertyIsLessThan>
+              <ogc:PropertyIsLessThan>
+                <ogc:PropertyName>Year</ogc:PropertyName>
+                <ogc:Literal>1995</ogc:Literal>
+              </ogc:PropertyIsLessThan>
+            </ogc:And>
+          </ogc:Filter>
+          <PointSymbolizer>
+            <Graphic>
+              <Mark>
+                <WellKnownName>circle</WellKnownName>
+                <Fill>
+                  <CssParameter name="fill">#ffb666</CssParameter>
+                  <CssParameter name="fill-opacity">0.4</CssParameter>                 
+                </Fill>
+              </Mark>
+              <Size>10</Size>
+            </Graphic>
+          </PointSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>mb0_4-year1995_2005</Name>
+          <Title>magnitude 0 to 4, from 1995 to 2005</Title>
+          <ogc:Filter>
+            <ogc:And>
+              <ogc:PropertyIsLessThan>
+                <ogc:PropertyName>mb</ogc:PropertyName>
+                <ogc:Literal>4</ogc:Literal>
+              </ogc:PropertyIsLessThan>
+              <ogc:PropertyIsGreaterThanOrEqualTo>
+                <ogc:PropertyName>Year</ogc:PropertyName>
+                <ogc:Literal>1995</ogc:Literal>
+              </ogc:PropertyIsGreaterThanOrEqualTo>
+              <ogc:PropertyIsLessThanOrEqualTo>
+                <ogc:PropertyName>Year</ogc:PropertyName>
+                <ogc:Literal>2005</ogc:Literal>
+              </ogc:PropertyIsLessThanOrEqualTo>
+            </ogc:And>
+          </ogc:Filter>
+          <PointSymbolizer>
+            <Graphic>
+              <Mark>
+                <WellKnownName>circle</WellKnownName>
+                <Fill>
+                  <CssParameter name="fill">#aa8333</CssParameter>
+                  <CssParameter name="fill-opacity">0.4</CssParameter>                 
+                </Fill>
+              </Mark>
+              <Size>10</Size>
+            </Graphic>
+          </PointSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>mb0_4-year2005_</Name>
+          <Title>magnitude 0 to 4, from 2005</Title>
+          <ogc:Filter>
+            <ogc:And>
+              <ogc:PropertyIsLessThan>
+                <ogc:PropertyName>mb</ogc:PropertyName>
+                <ogc:Literal>4</ogc:Literal>
+              </ogc:PropertyIsLessThan>
+              <ogc:PropertyIsGreaterThanOrEqualTo>
+                <ogc:PropertyName>Year</ogc:PropertyName>
+                <ogc:Literal>2005</ogc:Literal>
+              </ogc:PropertyIsGreaterThanOrEqualTo>
+            </ogc:And>
+          </ogc:Filter>
+          <PointSymbolizer>
+            <Graphic>
+              <Mark>
+                <WellKnownName>circle</WellKnownName>
+                <Fill>
+                  <CssParameter name="fill">#552000</CssParameter>
+                  <CssParameter name="fill-opacity">0.4</CssParameter>                 
+                </Fill>
+              </Mark>
+              <Size>10</Size>
+            </Graphic>
+          </PointSymbolizer>
+        </Rule>
+
+        <Rule>
+          <Name>mb4_5-year_1995</Name>
+          <Title>magnitude 4 to 5, up to 1995</Title>
+          <ogc:Filter>
+            <ogc:And>
+              <ogc:PropertyIsGreaterThanOrEqualTo>
+                <ogc:PropertyName>mb</ogc:PropertyName>
+                <ogc:Literal>4</ogc:Literal>
+              </ogc:PropertyIsGreaterThanOrEqualTo>
+              <ogc:PropertyIsLessThan>
+                <ogc:PropertyName>mb</ogc:PropertyName>
+                <ogc:Literal>5</ogc:Literal>
+              </ogc:PropertyIsLessThan>
+              <ogc:PropertyIsLessThan>
+                <ogc:PropertyName>Year</ogc:PropertyName>
+                <ogc:Literal>1995</ogc:Literal>
+              </ogc:PropertyIsLessThan>
+            </ogc:And>
+          </ogc:Filter>
+          <PointSymbolizer>
+            <Graphic>
+              <Mark>
+                <WellKnownName>circle</WellKnownName>
+                <Fill>
+                  <CssParameter name="fill">#ffb666</CssParameter>
+                  <CssParameter name="fill-opacity">0.4</CssParameter>                 
+                </Fill>
+              </Mark>
+              <Size>15</Size>
+            </Graphic>
+          </PointSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>mb4_5-year1995_2005</Name>
+          <Title>magnitude 4 to 5, from 1995 to 2005</Title>
+          <ogc:Filter>
+            <ogc:And>
+              <ogc:PropertyIsGreaterThanOrEqualTo>
+                <ogc:PropertyName>mb</ogc:PropertyName>
+                <ogc:Literal>4</ogc:Literal>
+              </ogc:PropertyIsGreaterThanOrEqualTo>
+              <ogc:PropertyIsLessThan>
+                <ogc:PropertyName>mb</ogc:PropertyName>
+                <ogc:Literal>5</ogc:Literal>
+              </ogc:PropertyIsLessThan>
+              <ogc:PropertyIsGreaterThanOrEqualTo>
+                <ogc:PropertyName>Year</ogc:PropertyName>
+                <ogc:Literal>1995</ogc:Literal>
+              </ogc:PropertyIsGreaterThanOrEqualTo>
+              <ogc:PropertyIsLessThanOrEqualTo>
+                <ogc:PropertyName>Year</ogc:PropertyName>
+                <ogc:Literal>2005</ogc:Literal>
+              </ogc:PropertyIsLessThanOrEqualTo>
+            </ogc:And>
+          </ogc:Filter>
+          <PointSymbolizer>
+            <Graphic>
+              <Mark>
+                <WellKnownName>circle</WellKnownName>
+                <Fill>
+                  <CssParameter name="fill">#aa8333</CssParameter>
+                  <CssParameter name="fill-opacity">0.4</CssParameter>                 
+                </Fill>
+              </Mark>
+              <Size>15</Size>
+            </Graphic>
+          </PointSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>mb4_5-year2005_</Name>
+          <Title>magnitude 4 to 5, from 2005</Title>
+          <ogc:Filter>
+            <ogc:And>
+              <ogc:PropertyIsGreaterThanOrEqualTo>
+                <ogc:PropertyName>mb</ogc:PropertyName>
+                <ogc:Literal>4</ogc:Literal>
+              </ogc:PropertyIsGreaterThanOrEqualTo>
+              <ogc:PropertyIsLessThan>
+                <ogc:PropertyName>mb</ogc:PropertyName>
+                <ogc:Literal>5</ogc:Literal>
+              </ogc:PropertyIsLessThan>
+              <ogc:PropertyIsGreaterThanOrEqualTo>
+                <ogc:PropertyName>Year</ogc:PropertyName>
+                <ogc:Literal>2005</ogc:Literal>
+              </ogc:PropertyIsGreaterThanOrEqualTo>
+            </ogc:And>
+          </ogc:Filter>
+          <PointSymbolizer>
+            <Graphic>
+              <Mark>
+                <WellKnownName>circle</WellKnownName>
+                <Fill>
+                  <CssParameter name="fill">#552000</CssParameter>
+                  <CssParameter name="fill-opacity">0.4</CssParameter>                 
+                </Fill>
+              </Mark>
+              <Size>15</Size>
+            </Graphic>
+          </PointSymbolizer>
+        </Rule>
+
+        <Rule>
+          <Name>mb5_-year_1995</Name>
+          <Title>magnitude from 5, up to 1995</Title>
+          <ogc:Filter>
+            <ogc:And>
+              <ogc:PropertyIsGreaterThanOrEqualTo>
+                <ogc:PropertyName>mb</ogc:PropertyName>
+                <ogc:Literal>5</ogc:Literal>
+              </ogc:PropertyIsGreaterThanOrEqualTo>
+              <ogc:PropertyIsLessThan>
+                <ogc:PropertyName>Year</ogc:PropertyName>
+                <ogc:Literal>1995</ogc:Literal>
+              </ogc:PropertyIsLessThan>
+            </ogc:And>
+          </ogc:Filter>
+          <PointSymbolizer>
+            <Graphic>
+              <Mark>
+                <WellKnownName>circle</WellKnownName>
+                <Fill>
+                  <CssParameter name="fill">#ffb666</CssParameter>
+                  <CssParameter name="fill-opacity">0.4</CssParameter>                 
+                </Fill>
+              </Mark>
+              <Size>20</Size>
+            </Graphic>
+          </PointSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>mb5_-year1995_2005</Name>
+          <Title>magnitude from 5, from 1995 to 2005</Title>
+          <ogc:Filter>
+            <ogc:And>
+              <ogc:PropertyIsGreaterThanOrEqualTo>
+                <ogc:PropertyName>mb</ogc:PropertyName>
+                <ogc:Literal>5</ogc:Literal>
+              </ogc:PropertyIsGreaterThanOrEqualTo>
+              <ogc:PropertyIsGreaterThanOrEqualTo>
+                <ogc:PropertyName>Year</ogc:PropertyName>
+                <ogc:Literal>1995</ogc:Literal>
+              </ogc:PropertyIsGreaterThanOrEqualTo>
+              <ogc:PropertyIsLessThanOrEqualTo>
+                <ogc:PropertyName>Year</ogc:PropertyName>
+                <ogc:Literal>2005</ogc:Literal>
+              </ogc:PropertyIsLessThanOrEqualTo>
+            </ogc:And>
+          </ogc:Filter>
+          <PointSymbolizer>
+            <Graphic>
+              <Mark>
+                <WellKnownName>circle</WellKnownName>
+                <Fill>
+                  <CssParameter name="fill">#aa8333</CssParameter>
+                  <CssParameter name="fill-opacity">0.4</CssParameter>                 
+                </Fill>
+              </Mark>
+              <Size>20</Size>
+            </Graphic>
+          </PointSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>mb5_-year2005_</Name>
+          <Title>magnitude from 5, from 2005</Title>
+          <ogc:Filter>
+            <ogc:And>
+              <ogc:PropertyIsGreaterThanOrEqualTo>
+                <ogc:PropertyName>mb</ogc:PropertyName>
+                <ogc:Literal>5</ogc:Literal>
+              </ogc:PropertyIsGreaterThanOrEqualTo>
+              <ogc:PropertyIsGreaterThanOrEqualTo>
+                <ogc:PropertyName>Year</ogc:PropertyName>
+                <ogc:Literal>2005</ogc:Literal>
+              </ogc:PropertyIsGreaterThanOrEqualTo>
+            </ogc:And>
+          </ogc:Filter>
+          <PointSymbolizer>
+            <Graphic>
+              <Mark>
+                <WellKnownName>circle</WellKnownName>
+                <Fill>
+                  <CssParameter name="fill">#552000</CssParameter>
+                  <CssParameter name="fill-opacity">0.4</CssParameter>                 
+                </Fill>
+              </Mark>
+              <Size>20</Size>
+            </Graphic>
+          </PointSymbolizer>
+        </Rule>
+        
+      </FeatureTypeStyle>
+    </UserStyle>
+  </NamedLayer>
+</StyledLayerDescriptor>

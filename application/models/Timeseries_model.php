@@ -72,7 +72,6 @@ class Timeseries_model extends CI_Model {
    * @param   the timeseries id
    * @return	nothing
    * Note: CASCADE delete: it will remove the timeseries for all users
-   * TBD: Log!
   */
 	function del_timeseries( $ts_id )
 	{
@@ -131,6 +130,25 @@ class Timeseries_model extends CI_Model {
     return $existe;
 	}  
   /* end function get_timeseries_exist */
+  
+
+  /**
+   * Get if a timeseries does not exist with the same name
+   *
+   * @access	public
+   * @param   the timeseries name 
+   * @return	TRUE or FALSE
+  */
+  function get_timeseries_not_exist( $ts )
+  {
+		$this->load->database();
+		$this->db->where( 'ts_name', $ts );
+		$this->db->select( 'ts_id' );
+		$query = $this->db->get( 'timeseries' );
+    $existe = ( $query->num_rows() > 0 );
+    return (! $existe);
+	}  
+  /* end function get_timeseries_not_exist */
   
   
   /**

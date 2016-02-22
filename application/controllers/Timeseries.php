@@ -1,8 +1,17 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
+/**
+ * Timeseries Controller
+ *
+ * @package		CodeIgniter
+ * @subpackage	Controllers
+ * @version	  1.0
+ * @author		Fulgencio Sanmartín
+ * @link		email@fulgenciosanmartin.com
+*/
 class Timeseries extends CI_Controller {
 	var $ts_name = "";
-  var $ts_types = "msbas,histogram"; // models available; events is fixed as background
+  var $ts_types = "msbas,histogram,gnss"; // models available; events is fixed as background
   var $ts_file_ts = ""; // ex VVP_ML_1_Pixel_FullSerie_238_370test_EW_Detrended.dat
   // the following are only needed for msbas
   var $ts_file_ts_ini_coord = 0; // ex 26 regexp above to NNN_NNN
@@ -12,7 +21,7 @@ class Timeseries extends CI_Controller {
   var $ts_coord_lon_left = 29.0; // negative is west Greenwich, positive is east
   var $ts_coord_lat_inc = 0.0008333333; // positive increment in degrees per pixel
   var $ts_coord_lon_inc = 0.0008333333; // positive increment in degrees per pixel
-  // and this only for seism-counting
+  // and this only for seism-counting or GNSS
   var $ts_seism_station = ""; // ex KBB
   
 	function __construct()
@@ -92,7 +101,16 @@ class Timeseries extends CI_Controller {
 		else
 		{   
       //rules to validate form input
-      $this->form_validation->set_rules('ts_name', 'Timeseries name', 'required'); 
+      $this->load->model( 'timeseries_model', 'ts' );
+      $this->form_validation->set_rules('ts_name', 'Timeseries name', 
+        array( 'required', 
+               array( 'ts_name_error_msg',
+                      array( $this->ts, 'get_timeseries_not_exist' ) 
+                    )
+             ) 
+      ); 
+      $this->form_validation->set_message('ts_name_error_msg', 'Time series name already used');             
+      
       // |min_length[5]|max_length[250]|alpha_numeric');
       // http://www.codeigniter.com/userguide3/libraries/form_validation.html#rule-reference
       $this->form_validation->set_rules('ts_type', 'Timeseries type', 'required|in_list[' . $this->ts_types . ']' );
@@ -112,8 +130,11 @@ class Timeseries extends CI_Controller {
       if( $this->form_validation->run() == true )
       {
         $data[ 'ts_name' ] = $this->input->post( 'ts_name' );
+        
+        log_message( 'info', '[WISDOM-Volkano] Timeseries ' . $data[ 'ts_name' ] . ' created by ' . $this->session->userdata('identity') );
+        
         $data[ 'ts_type' ] = $this->input->post( 'ts_type' );
-        $data[ 'ts_file' ] = trim( $this->input->post( 'ts_file' ) ); // folder for msbas, file for histogram 
+        $data[ 'ts_file' ] = trim( $this->input->post( 'ts_file' ) ); // folder for msbas, file for histogram or GNSS
         $data[ 'ts_description' ] = $this->input->post( 'ts_description' );
         $data[ 'ts_file_raster' ] = $this->input->post( 'ts_file_raster' );
         $data[ 'ts_file_raster_ini_date' ] = $this->input->post( 'ts_file_raster_ini_date' );
@@ -130,7 +151,11 @@ class Timeseries extends CI_Controller {
         // get all users to grant the ts
         if( $this->input->post( 'grant' ) ) 
           foreach( $this->input->post( 'grant' ) as $user_email )
+          {
+            log_message( 'info', '[WISDOM-Volkano] Timeseries ' . $data[ 'ts_name' ] . ' granted to ' . $user_email . ' by ' . $this->session->userdata('identity') );
+          
             $this->userts->set_userts_new( $user_email, $data['ts_name'] );
+          }
         // by default, the admin grants herself the ts 
         $this->userts->set_userts_new( $this->session->userdata( 'email' ), $data['ts_name'] );
         
@@ -237,6 +262,34 @@ class Timeseries extends CI_Controller {
 		}
 		else
 		{
+      // remove from the Session as well
+      if( isset( $_SESSION[ 'ts_msbas' ] ) )
+      {
+        if( strpos( $_SESSION[ 'ts_msbas' ], $ts_id ) )
+        {        
+          $_SESSION[ 'ts_msbas' ] = "";
+          $_SESSION[ 'ts_msbas_num' ] = 0;
+        }
+        else if( isset( $_SESSION[ 'ts_histo' ] ) )
+        {
+          if( strpos( $_SESSION[ 'ts_histo' ], $ts_id ) )
+          {        
+            $_SESSION[ 'ts_histo' ] = "";
+            $_SESSION[ 'ts_histo_num' ] = 0;
+          }
+          else if( isset( $_SESSION[ 'ts_gnss' ] ) )
+          {
+            if( strpos( $_SESSION[ 'ts_gnss' ], $ts_id ) )
+            {        
+              $_SESSION[ 'ts_gnss' ] = "";
+              $_SESSION[ 'ts_gnss_num' ] = 0;
+            }
+          }
+        }
+      }
+      
+      log_message( 'info', '[WISDOM-Volkano] Timeseries ' . $ts_id . ' removed by ' . $this->session->userdata('identity') );
+    
       $this->load->model( 'timeseries_model', 'ts' );
       $this->ts->del_timeseries( $ts_id );
       redirect( site_url() . '/timeseries', 'refresh' );
@@ -305,7 +358,7 @@ class Timeseries extends CI_Controller {
    *
    * @access	public//ajax
    * @param   name of msbas folder 
-   * @return	[not return but echo] reads the two files and ECHOES its needed contents in json TBD!!!
+   * @return	[not return but echo] reads the two files and ECHOES its needed contents in json 
   */  
   public function load_msbas_files( $folder )
   {
@@ -373,7 +426,6 @@ class Timeseries extends CI_Controller {
   /**
    * Loads timeseries (and their order?) into the user canvas 
    *   from the user ts pool of enabled timeseries
-   * TBD: is this used?
    * @access	public
    * @param   sorted timeseries to be loaded
    * job     	load (set 1) the userts rows 
@@ -391,7 +443,7 @@ class Timeseries extends CI_Controller {
 		{
       $ts = $this->input->post( 'grant' );
       $this->load->model( 'userts_model', 'userts' );
-      // TBD: all ts unloaded; only the checked below are loaded
+
       $this->userts->unload_ts( $this->session->userdata( 'email' ) );
       if( is_array( $ts ) )
       {
@@ -412,6 +464,7 @@ class Timeseries extends CI_Controller {
     }
   }
   /* end of function load */
+  
   
   
 }

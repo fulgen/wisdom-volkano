@@ -1,87 +1,122 @@
-/* http://jsfiddle.net/gh/get/jquery/1.7.2/highslide-software/highcharts.com/tree/master/samples/highcharts/no-data-to-display/no-data-pie/ */
-
 $(function () {
 
-  $('#container').highcharts({
-    chart: {
-        plotBackgroundColor: null,
-        plotBorderWidth: null,
-        plotShadow: false
-    },
-    title: {
-        text: 'No data yet'
-    },
+  $('#chart0').highcharts({
+    chart: { type: 'column', zoomType: 'x' },
+    title: { text: 'No data yet' },
+    xAxis: { type: 'datetime' },
     series: [{
-        type: 'line',
         name: 'Select a point in the map in order to show the timeseries',
-        data: []
+        lineWidth: 0, 
+        color: '#fff', 
+        showInLegend: false,  
+        formatter: function() { return false; }, 
+        enableMouseTracking: false, 
+        dataLabels: { 
+          enabled: true, 
+          rotation: -90, 
+          color: '#000', // 877 
+          align: 'left', 
+          formatter: function() { return ar[ this.x ]; }, 
+          y: -2, // pixels from the origin 
+          style: { 
+            fontSize: '9px', 
+            fontFamily: 'Arial Narrow, Arial, Helvetica Condensed, Helvetica, sans-serif' 
+          } 
+        }, 
+        data: dataH 
     }],
-    credits: {
-      enabled: false
-    },
-    exporting: {
-      enabled: true,
-      buttons: {
-        contextButton: {
-          align: 'left',
-          x: 10, 
-          menuItems: [{
-            text: 'manage timeseries',
-            onclick: function() {
-               $('#modalTS').modal('show'); 
-            }
-          }, {
-            text: 'export to PNG',
-            onclick: function() {
-              this.exportChart();
-            }              
-          }]
-        }
-      }
-    }
-    
+    exporting: { buttons: { contextButton: { align: 'left' } } }
   });
+  
+  // Ts load in first execution
+  var newdiv;
+  for( var i = 1; i <= ( ts_seism_num + ts_gnss_num ); i++ )
+  {
+    newdiv = '<div class="chart" id="chart' + i + '">';
+    $( newdiv ).appendTo( $('#container') );
+  }
+  call_ts_ajax();
 });
 
-var prev_type = "";
-var ts_data = [];
-var ts_lon  = [];
-var ts_lat  = [];
-var ts_num  = 0;
+
+/** 
+ * Main loader of ts data. Charts available: msbas (data, lon, lat), seismo (station), gnss (station)
+ */
 function load_async( ts_type, ts_name, lon, lat )
 {
-  if( ts_type != prev_type || ts_type == 'histogram' ) 
+  switch( ts_type )
   {
-    ts_data = [];
-    ts_lon = [];
-    ts_lat = [];
+    case 'msbas':
+      ts_msbas_data.push( ts_name );
+      ts_msbas_lon.push( lon );
+      ts_msbas_lat.push( lat );
+      ts_msbas_num ++;
+      break;
+    case 'histogram': 
+      if( ts_seism_data.indexOf( ts_name ) < 0 ) // not added yet
+      { 
+        // ts_seism_data.push( ts_name );
+        ts_seism_data[ ts_seism_num ] = ts_name;
+        ts_seism_num ++;
+        var newdiv = '<div class="chart" id="chart' + ts_seism_num + '">';
+        $( newdiv ).appendTo( $('#container') );
+      }
+      break;
+    case 'gnss':
+      if( ts_gnss_data.indexOf( ts_name ) < 0 ) // not added yet
+      { 
+        // ts_gnss_data.push( ts_name );
+        ts_gnss_data[ ts_gnss_num ] = ts_name;
+        ts_gnss_num ++;
+        var next = ts_seism_num + ts_gnss_num;
+        var newdiv = '<div class="chart" id="chart' + next + '">';
+        $( newdiv ).appendTo( $('#container') );
+      }
+      // gnss always after histogram
+      break;
   }
-  ts_data.push( ts_name );
-  ts_lon.push( lon );
-  ts_lat.push( lat );
-  ts_num ++;
-  prev_type = ts_type;
-  
-  console.log( 'data:' + ts_data + ' - type:' + ts_type + ' - lon:' + ts_lon + ' - lat:' + ts_lat );
-
-  call_ajax( ts_type );
+  call_ts_ajax();
 }
 
 
-function call_ajax( ts_type )
+function call_ts_ajax()
 {
   $.ajax({type: "POST", 
      url: "/index.php/mapa/load_ts_async/",
      // json to be decoded in php with json_decode
-     data: { ts_name: array2json( ts_data ), 
-             ts_type: ts_type, 
-             lon:  array2json( ts_lon ),
-             lat:  array2json( ts_lat ) },
+     data: { ts_msbas: array2json( ts_msbas_data ), 
+             ts_histo: array2json( ts_seism_data ),
+             ts_gnss: array2json(  ts_gnss_data  ),
+             lon:  array2json( ts_msbas_lon ),
+             lat:  array2json( ts_msbas_lat ) },
      success: function(result){ 
-       eval(result); 
-       s = form_modal_list_ts();
-       $("#modalTSbody").html( s ); 
-       $("ol.sortable").sortable();
+        try {
+            eval(result); 
+        } catch (e) {
+            if (e instanceof SyntaxError) {
+                console.log( 'load_ts_async error: ' + e.message );
+            }
+        }
+        s = form_modal_list_ts();
+        $("#modalTSbody").html( s ); 
+        $("ol.sortable").sortable();
+        
+        // and save the list to config
+        $.ajax({type: "POST", 
+           url: "/index.php/status/ajaxTSConfig/",
+           data: { ts_msbas: array2json( ts_msbas_data ), 
+                   ts_histo: array2json( ts_seism_data ),
+                   ts_gnss: array2json(  ts_gnss_data  ),
+                   lon:  array2json( ts_msbas_lon ),
+                   lat:  array2json( ts_msbas_lat ) },
+           success: function(result){ 
+           },
+           error: function( jqXHR, textStatus, errorThrown ) { 
+              console.log(JSON.stringify(jqXHR));
+              console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
+           }
+        }); 
+        
      },
      error: function( jqXHR, textStatus, errorThrown ) { 
         console.log(JSON.stringify(jqXHR));
@@ -90,18 +125,19 @@ function call_ajax( ts_type )
   }); 
 }
 
+
 function form_modal_list_ts()
 {
-  s = '<ol class="sortable">                               \n';
+  var s = '<ol class="sortable">                               \n';
   
-  for( var i = 0; i < ts_num; i++ )
+  for( var i = 0; i < ts_msbas_num; i++ )
   {
     s += '    <li>                                         \n'
       +  '       <input type="checkbox" name="checkts[]"     '
       +  '              value="' + i + '" checked="checked">&nbsp;' 
-      +          ts_data[ i ] 
-      +  '       [' + round_number( ts_lon[i], 3 ) + ',' 
-      +               round_number( ts_lat[i], 3 ) + ']    \n'
+      +          ts_msbas_data[ i ] 
+      +  '       [' + round_number( ts_msbas_lon[i], 3 ) + ',' 
+      +               round_number( ts_msbas_lat[i], 3 ) + ']&nbsp;'
       +  '    </li>                                        \n';
   }
 
@@ -111,40 +147,163 @@ function form_modal_list_ts()
 }
 
 
+
+function  call_modal_detrend_ts( type, idx )
+{
+  var idChart = 0;
+  if( idx > 0 ) // gnss
+    idChart = ts_seism_num + idx;
+  var chart = $('#chart' + idChart).highcharts();
+  var xextremes = chart.xAxis[0].getExtremes();
+  var yextremes = chart.yAxis[0].getExtremes();
+  var maxx = Highcharts.dateFormat('%Y-%m-%d', xextremes.max );
+  var minx = Highcharts.dateFormat('%Y-%m-%d', xextremes.min ); 
+  $("#detrendtype").val( type );
+  $("#minx").val( minx );
+  $("#maxx").val( maxx );
+  
+  var s = '<p>Detrend ' + $("#detrendtype").val() + ' from date ' + $("#minx").val() + ' to ' + $("#maxx").val() + ' which timeseries?</p>\n';
+
+  s += '<ol> \n';
+  if( type == 'msbas' )
+  {
+    for( var i = 0; i < ts_msbas_num; i++ )
+    {
+      var msbas = ts_msbas_data[ i ] 
+        +  '[' + round_number( ts_msbas_lat[i], 3 ) + ',' 
+        +        round_number( ts_msbas_lon[i], 3 ) + ']';
+
+      s += '    <li>                                         \n'
+        +  '       <input type="radio" name="radiots"     '
+        +  '              value="' + msbas + '" />&nbsp;' + msbas  
+        +  '    </li>                                        \n';
+    }
+  }
+  else // gnss
+  {
+    // ts_gnss_data is an object here, back to an array
+    var arGnss = $.map(ts_gnss_data, function(value, index) { return [value]; });
+    s += '    <li><input type="radio" name="radiots" '
+      +  '        value="' + arGnss[idx-1] + '[EW]" />&nbsp;' + arGnss[idx-1] + '&nbsp;EW</li>\n';
+    s += '    <li><input type="radio" name="radiots" '
+      +  '        value="' + arGnss[idx-1] + '[NS]" />&nbsp;' + arGnss[idx-1]  + '&nbsp;NS</li>\n';
+    s += '    <li><input type="radio" name="radiots" '
+      +  '        value="' + arGnss[idx-1] + '[UP]" />&nbsp;' + arGnss[idx-1]  + '&nbsp;UP</li>\n';
+  }
+
+  s += '</ol> \n';
+  
+  $("#detrendTSbody").html( s ); 
+  $("#detrendTS").modal('show');
+}
+
+
+
 $(function  () {
+
+  /* Detrend TS: at least one radio selected */
+  $('#formdetrend').submit(function()
+  {
+    if( ! $("input[type=radio]:checked").val() ) 
+    {
+      alert( 'Please select at least one timeseries.' );
+      return false; 
+    }  
+  });
+
+/* Manage Ts: Rearranging the content of the msbas list */
   $("#buttonts").on('click', function() {
     var new_ts  = [];
     var new_lon = [];
     var new_lat = [];
     var i = 0;
-    // 1. call to rearrange the content in the form in the 3 arrays
-    $.each( $("input[name='checkts[]']:checked"), function() {
-      i = $(this).val();
-      // console.log( 'reordering ' + i );
-      new_ts.push( ts_data[ i ] );
-      new_lon.push( ts_lon[ i ] );
-      new_lat.push( ts_lat[ i ] );
-    });
-    ts_data = []; ts_data.length = 0;
-    ts_lon  = []; ts_lon.length = 0;
-    ts_lat  = []; ts_lat.length = 0;
-    ts_data = new_ts.slice();
-    ts_lon = new_lon.slice();
-    ts_lat = new_lat.slice();
-    ts_num = new_ts.length;
+    // 0. if none checked
+    if( $("input[name='checkts[]']:checked").size() == 0 )
+    {
+      ts_msbas_data = []; ts_msbas_data.length = 0;
+      ts_msbas_lon  = []; ts_msbas_lon.length = 0;
+      ts_msbas_lat  = []; ts_msbas_lat.length = 0;
+    }
+    else
+    {
+      // 1. call to rearrange the content in the form in the 3 arrays
+      $.each( $("input[name='checkts[]']:checked"), function() {
+        i = $(this).val();
+        new_ts.push( ts_msbas_data[ i ] );
+        new_lon.push( ts_msbas_lon[ i ] );
+        new_lat.push( ts_msbas_lat[ i ] );
+      });
+      ts_msbas_data = []; ts_msbas_data.length = 0;
+      ts_msbas_lon  = []; ts_msbas_lon.length = 0;
+      ts_msbas_lat  = []; ts_msbas_lat.length = 0;
+      ts_msbas_data = new_ts.slice();
+      ts_msbas_lon  = new_lon.slice();
+      ts_msbas_lat  = new_lat.slice();
+      ts_msbas_num  = new_ts.length;
+    }
     
-    // 2. and call ajax above
-    call_ajax( "msbas" );
+    // 2. call ajax to reload the charts 
+    call_ts_ajax();
     
     // 3. close modal window
     $('#modalTS').modal('hide');
   });
+  
+   
+  
+  /* button to store timeseries points as favorites */
+  $("#btfav").on('click', function() {
+    $.ajax({type: "POST", 
+       url: "/index.php/favorite/ajaxTSSave/",
+       data: { ts_msbas: array2json( ts_msbas_data ), 
+               lon:  array2json( ts_msbas_lon ),
+               lat:  array2json( ts_msbas_lat ) },
+       success: function(result){ 
+         console.log( 'favorites saved ' + result );
+       },
+       error: function( jqXHR, textStatus, errorThrown ) { 
+          console.log(JSON.stringify(jqXHR));
+          console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
+       }
+    }); 
+    $('#modalTS').modal('hide');
+  });
+  
+  
+  /* button to reset timeseries */
+  $("#btn_ts_reset").on('click', function() {
+    if( confirm( 'Are you sure to reset the timeseries?' ) )
+    {
+      ts_msbas_data = []; ts_msbas_data.length = 0;
+      ts_msbas_lon  = []; ts_msbas_lon.length = 0;
+      ts_msbas_lat  = []; ts_msbas_lat.length = 0;
+      ts_seism_data = []; ts_seism_data.length = 0;
+      ts_gnss_data  = []; ts_gnss_data.length = 0;
+      
+      /* Loop to remove div charts except the first one */
+      for( var i = 1; i <= ( ts_seism_num + ts_gnss_num ); i ++ )
+      {
+        $('#chart' + i).remove(); 
+        // chart.destroy();
+      }
+      ts_msbas_num = ts_seism_num = ts_gnss_num = 0;
+    
+      $.ajax({type: "POST", 
+         url: "/index.php/status/ajaxReset/",
+         data: { },
+         success: function(result){ 
+           console.log( 'status reset ' + result );
+           call_ts_ajax();
+           // And reload the page?
+         },
+         error: function( jqXHR, textStatus, errorThrown ) { 
+            console.log(JSON.stringify(jqXHR));
+            console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
+         }
+      }); 
+    }
+  });
 });
-
-
-function round_number(num, dec) {
-    return Math.round(num * Math.pow(10, dec)) / Math.pow(10, dec);
-}
 
 
 /**
@@ -186,7 +345,6 @@ function array2json(arr) {
 }
 
 
-/** Function to be used with msbas timeseries **/
 // format: 2005.40301
 // Convert date: 0.0000 = 1st Jan, 00:00:00; 0.9999 = 31st Dec, 23:59:59
 function tick2Date( yeartick ) {
@@ -196,7 +354,6 @@ function tick2Date( yeartick ) {
   var tick = yeartick - year; 
 
   dayofyear = Math.round( tick * 365 ); // days in Javascript start at 0
-  // console.log( 'yeartick: ' + yeartick + ' -- dayofyear: ' + dayofyear );
   if( dayofyear <= 31 ) { // Jan
     month = '0'; // months in Javascript start at 0
     day = dayofyear;
@@ -246,6 +403,29 @@ function tick2Date( yeartick ) {
     day = dayofyear - 334; 
   }
   var date = Date.UTC( year, month, day ); // must follow the example http://www.highcharts.com/demo/spline-irregular-time 
-  //console.log( date );
   return date;
 }
+
+function round_number(num, dec) {
+    return Math.round(num * Math.pow(10, dec)) / Math.pow(10, dec);
+}
+
+
+function call_layer_visib_ajax( layer_id, value )
+{
+  $.ajax({type: "POST", 
+     url: "/index.php/status/ajaxLayerVisib/",
+     data: { id: layer_id, 
+             val: value
+           },
+     success: function(result){ 
+     },
+     error: function( jqXHR, textStatus, errorThrown ) { 
+        console.log(JSON.stringify(jqXHR));
+        console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
+     }
+  }); 
+}
+
+
+

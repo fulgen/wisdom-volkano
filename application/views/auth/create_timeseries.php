@@ -135,11 +135,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
       
       <div id="grouphistogram">
         <div class="form-group">
-            <label for="ts_seism_station" class="col-xs-3 control-label">Seism station</label>
+            <label for="ts_seism_station" class="col-xs-3 control-label">Seism or GNSS station</label>
             <div class="col-xs-9">
             <?php 
               echo form_input('ts_seism_station', '', 'class="form-control" id="ts_seism_station" '); 
-            ?></div>
+            ?>
+            (name must be the same as in KML/KMZ station file)
+            </div>
         </div>  
       </div>
 
@@ -178,7 +180,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 </div> <!-- container -->
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="<?php echo base_url('assets/js/jquery-2.1.4.min.js');?>"></script>
+    <script src="<?php echo base_url('assets/js/jquery-2.2.0.min.js');?>"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="<?php echo base_url('assets/js/bootstrap.min.js');?>"></script>
 
@@ -190,9 +192,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
       $(document).ready(function() {  
         $("#grouphistogram").hide(); // by default we show only msbas in the 1st load
         $("#ts_type").change(function(){  
-           // console.log( $("#ts_type").val() ); // or .text() for the option shown
            var tipo = $("#ts_type").val();
-           // console.log( tipo );
            if( tipo == 'msbas' )
            {
               $("#grouphistogram").hide();
@@ -208,11 +208,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
               // data: {id: $(this).val()},  
               type: "POST",  
               success:function(data){ 
-                //console.log( data );
                 var obj = $.parseJSON( data );
                 var str = "";
                 for( var k in obj.data ) {
-                  // console.log( k, obj.data[ k ] );
                   str = str + "<option value='" + obj.data[ k ] + "'>" + obj.data[ k ] + "</option>";
                 }
                 $("#ts_file").html(str);  
@@ -222,7 +220,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         
         $("#ts_file").change(function(){  
            var tipo = $("#ts_type").val();
-           // console.log( tipo );
            if( tipo == 'msbas' ) // only in this case
            {
              $.ajax({  
@@ -230,9 +227,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 // data: {id: $(this).val()},  
                 type: "POST",  
                 success:function(data){
-                  // console.log( data );
                   var obj = $.parseJSON( data );
-                  // console.log( obj.data.ts_file_raster );
                   $("#ts_file_raster").val( obj.data.ts_file_raster );
                   $("#ts_file_raster_ini_date").val( obj.data.ts_file_raster_ini_date );  
                   $("#ts_file_raster_ex_date").html( obj.data.ts_file_raster_ex_date );

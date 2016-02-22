@@ -46,11 +46,11 @@ class Geoserver_model extends CI_Model
   {
     $curl_app = $this->get_curl_env();
     $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: text/xml" ' . $this->config->item( 'geoserver_rest' ) . '/workspaces/ ' . $debug; 
-    // print_r( $curl_call );
+    //log_message('error', $curl_call );
     $out = shell_exec( $curl_call ); 
-    // print_r( $out );
+    //log_message('error', $out );
     $xml = simplexml_load_string( $out );
-    // print_r( $xml );
+    //log_message('error', $xml );
     
     return $xml;
   }
@@ -94,6 +94,7 @@ class Geoserver_model extends CI_Model
   
   /**
    * Reads all Geoserver layers of all workspace, returns an array with them
+   *  http://docs.geoserver.org/latest/en/user/rest/examples/curl.html
    *
    * @access	public
    * @return	array with layers 
@@ -103,17 +104,18 @@ class Geoserver_model extends CI_Model
     $curl_app = $this->get_curl_env();
     $ar_return = array();
     $rest_all = 'layers/';
-    $rest_ws_lay ='/coveragestores/';
-    $debug = ''; // 2>&1'; 
+    $rest_ws_ras = '/coveragestores/'; 
+    $rest_ws_fea = '/datastores/'; 
+    $debug = ''; // '2>&1'; // '';
     
     $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: text/xml" ' . $this->config->item( 'geoserver_rest' ) . $debug; 
 
-    // print_r( "<pre>" . $curl_call . "</pre>" );
+    // log_message('error', "curl: " . $curl_call . " " );
     $out = shell_exec( $curl_call ); 
-    // print_r( "<pre>" . $out . "</pre>" );
+    // log_message('error', "curl out: " . $out . "" );
     $xml = simplexml_load_string( $out );
-    // print_r( $xml );
-    if( !$xml instanceof SimpleXMLElement || empty( $xml ) )
+    // log_message('error', print_r( $xml ) );
+    if( ( ! ( $xml instanceof SimpleXMLElement ) ) || empty( $xml ) )
     {
       log_message( 'error', 'app/model/geoserver/E-050 Error Cannot find any layer from GeoServer. Is it running?' );
       return;
@@ -122,48 +124,100 @@ class Geoserver_model extends CI_Model
     $i = 0;
     foreach( $xml as $element ) 
     {
-      //echo " workspace #$i: $element->name -- layers: <br/>";
-      $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: text/xml" ' . $this->config->item( 'geoserver_rest' )  . $element->name . $rest_ws_lay . $debug; 
+      // echo "<br> -------------- workspace #$i: $element->name -- rasters: <br/>";
+      $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: text/xml" ' . $this->config->item( 'geoserver_rest' )  . $element->name . $rest_ws_ras . $debug;  // first, the rasters
 
-      // print_r( "<pre>" . $curl_call . "</pre>" );
-      
+      //log_message('error', "raster: " . $curl_call . "" );
       $out2 = shell_exec( $curl_call ); 
-      // print_r( "<pre>" . $out . "</pre>" );
+      // print_r( $out2 );
       $xml2 = simplexml_load_string( $out2 );
+      // print_r( $xml2 );
       
-      // now I have two separates arrays, I need to mix them in one
-      foreach( $xml2 as $element2 ) 
+      if( $xml2 instanceof SimpleXMLElement ) 
       {
-        // echo " layer #$i: $element->name:$element2->name <br/>";
-        $ar_return[ $i ] = $element->name . ":" . $element2->name;
-        $i = $i + 1;
+        // now I have two separates arrays, I need to mix them in one
+        foreach( $xml2 as $element2 ) 
+        {
+          // echo "<br/> found raster #$i: $element->name:$element2->name ";
+          $ar_return[ $i ] = $element->name . ":" . $element2->name;
+          $i = $i + 1;
+        }
+      }
+
+      // echo "<br> -------------- workspace #$i: $element->name -- features: <br/>";
+      $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: text/xml" ' . $this->config->item( 'geoserver_rest' )  . $element->name . $rest_ws_fea . $debug;  // second, the features
+
+      // log_message('error', "feat: " . $curl_call . "" );
+      $out2 = shell_exec( $curl_call ); 
+      // print_r( $out2 );
+      $xml2 = simplexml_load_string( $out2 );
+      // print_r( $xml2 );
+      
+      if( $xml2 instanceof SimpleXMLElement ) 
+      {
+        // now I have two separates arrays, I need to mix them in one
+        foreach( $xml2 as $element2 ) 
+        {
+            // echo "<br/> found feature #$i: $element->name:$element2->name ";
+            $ar_return[ $i ] = $element->name . ":" . $element2->name;
+            $i = $i + 1;
+        }
       }
     }
     return $ar_return;
   }
 
-
-  
-  /*
-	function create_workspace( )
-  {
-  }
-  
-  
-  function create_geotiff( )
-  {
-    // parameter:
-    var $layername = 'curltest.geotiff'; 
-
-    // step 1: crear el store sin nada dentro
-    //   nota: en windows no funciona sin dobles comillas
-    var $curl_call = 'curl -u progci:blMKZjdMBYmo7ka30yNVGZXSyoeoRCZM3 -v -XPOST -H "Content-type:application/xml" -d "<coverageStore><name>' . $layername . '</name><workspace>cint</workspace><enabled>true</enabled></coverageStore>" http://127.0.0.1:8080/geoserver/rest/workspaces/cint/coveragestores';
-    
-    // step 2: subir? el fichero, lo que crea tb el layer 
-    var $curl_call = 'curl -u admin:geoserver -XPUT -H "Content-type: application/zip" --data-binary  @ filename.tiff http://localhost:8080/geoserver/rest/workspaces/cint/coveragestores/' . $layername . '/file.geotiff';
-  }
+  /**
+   * Gets feature info from Geoserver and discards the unknown
+   * Called from Geoserver controller 
+   *
+   * @access	public
+   * @return	array with info
   */
+  function ajaxGetFeatInfo( $urlGPSSta, $urlSeismSta, $urlSeismLoc )
+  {
+    $ret = [];
+    $curl_app = $this->get_curl_env();
+    // Filter through existing workspaces
+    // $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: text/xml" ' . $p_url; 
+
+    $curl_call = $curl_app . ' "' . $urlGPSSta . '" '; 
+    // log_message( 'error', $curl_call );
+    $out = shell_exec( $curl_call ); 
+    // log_message( 'error', $out );
+    $json = json_decode( $out, true ); 
+    if( count( $json['features'] ) ) // data available
+      $ret['GPSSta'] = $json['features'][0]['properties']['Name']; 
+    else
+      $ret['GPSSta'] = "";
+
+    $curl_call = $curl_app . ' "' . $urlSeismSta . '" '; 
+    // log_message( 'error', $curl_call );
+    $out = shell_exec( $curl_call ); 
+    // log_message( 'error', $out );
+    $json = json_decode( $out, true ); 
+    if( count( $json['features'] ) ) // data available
+      $ret['SeismSta'] = $json['features'][0]['properties']['Name']; 
+    else
+      $ret['SeismSta'] = "";
+      
+    $curl_call = $curl_app . ' "' . $urlSeismLoc . '" '; 
+    // log_message( 'error', $curl_call );
+    $out = shell_exec( $curl_call ); 
+    // log_message( 'error', $out );
+    $json = json_decode( $out, true ); 
+    if( count( $json['features'] ) ) // data available
+      $ret['SeismLoc'] = $json['features'][0]['properties']['date'] . "\n" 
+           . $json['features'][0]['properties']['mb'] . " magnitude - " 
+           . $json['features'][0]['properties']['Depth (km)'] . " km deep."; 
+    else
+      $ret['SeismLoc'] = "";
+      
+    return json_encode( $ret );
+  }
+  
+ 
 }
 
-/* End of file getlayer_helper.php */
-/* Location: ./application/helpers/getlayer_helper.php */
+/* End of file geoserver_model.php */
+/* Location: ./application/helpers/geoserver_model.php */

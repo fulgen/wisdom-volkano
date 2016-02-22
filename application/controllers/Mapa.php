@@ -1,6 +1,15 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Mapa Controller
+ *
+ * @package		CodeIgniter
+ * @subpackage	Controllers
+ * @version	  1.0
+ * @author		Fulgencio Sanmartín
+ * @link		email@fulgenciosanmartin.com
+*/
 class Mapa extends CI_Controller {
 
 	/**
@@ -26,6 +35,7 @@ class Mapa extends CI_Controller {
 			redirect('auth/login', 'refresh');
 		}
     
+    // 1. Load granted / available layers
     $this->load->model( 'Userlayer_model', 'Userlayer' );
     $result = $this->Userlayer->get_all_layers( $this->session->userdata( 'email' ) );
     
@@ -40,9 +50,9 @@ class Mapa extends CI_Controller {
       $data[ 'layers' ] = $result;
     }
 
+    // 2. Load granted / available timeseries
     $this->load->model( 'Userts_model', 'userts' );
     $result = $this->userts->get_all_timeseries( $this->session->userdata( 'email' ) );
-    
     if( ! $result )
     {
       $err = 'Error: No timeseries available. Please ask the admin to grant you some.';
@@ -52,7 +62,7 @@ class Mapa extends CI_Controller {
     else
     { 
       $data[ 'ts' ] = $result;
-    
+   
       $this->load->model( 'timeseries_model', 'ts_model' );
       // only for msbas ts
       foreach( $result as $tss )
@@ -68,7 +78,6 @@ class Mapa extends CI_Controller {
           $data[ 'left'  ] = $ts->ts_coord_lon_left;
           $data[ 'right' ] = $ts->ts_coord_lon_left 
               + $ts->ts_coord_lon_inc * $enviheader->get_value( "nCol" );
-          // TBD: negative!
           $data[ 'top'   ] = $ts->ts_coord_lat_top;
           $data[ 'down'  ] = $ts->ts_coord_lat_top 
               - $ts->ts_coord_lat_inc * $enviheader->get_value( "nRow" );
@@ -76,7 +85,93 @@ class Mapa extends CI_Controller {
         }
       }
     }
-
+    
+    // 3.1 Load permalink config
+    $this->load->model( 'status_model', 'status' );
+    if( ! isset( $_SESSION[ 'zoom' ] ) )
+    {
+      $config = $this->status->get_config_perma();
+      if( $config !== FALSE ) // loading previous config from table
+      {
+        $_SESSION[ 'zoom' ] = intval( $config->zoom );
+        $_SESSION[ 'lat' ]  = floatval( $config->lat );
+        $_SESSION[ 'lon' ]  = floatval( $config->lon ); 
+      }
+      else // no config found, default
+      {
+        $_SESSION[ 'zoom' ] = $this->config->item( 'default_zoom' );
+        $_SESSION[ 'lat' ] = $this->config->item( 'default_lat' );
+        $_SESSION[ 'lon' ] = $this->config->item( 'default_lon' ); 
+      }
+    }
+    // 3.2 Load ts config 
+    if( ! isset( $_SESSION[ 'ts_msbas' ] ) )
+    {
+      $config = $this->status->get_ts_config();
+      $_SESSION[ 'ts_msbas_num' ] = 0;
+      $_SESSION[ 'ts_histo_num' ] = 0;
+      $_SESSION[ 'ts_gnss_num' ]  = 0;
+      $_SESSION[ 'ts_msbas' ]     = [];  
+      $_SESSION[ 'ts_lat' ]       = [];
+      $_SESSION[ 'ts_lon' ]       = []; 
+      $_SESSION[ 'ts_histo' ]     = [];  
+      $_SESSION[ 'ts_gnss' ]      = [];  
+      if( $config !== FALSE ) // loading previous config from table
+      {
+        // only need one row per type: msbas, histo, gnss
+        $a_histo = array(); $a_gnss = array();
+        for( $i = 0; $i < count( $config ); $i ++ )
+        {
+          switch( $config[$i]->ts_type )
+          {
+            case 'msbas': 
+              $deco = json_decode( $config[$i]->config_msbas );
+              $_SESSION[ 'ts_msbas' ] = $deco[ 0 ];  
+              $_SESSION[ 'ts_lat' ]   = $deco[ 1 ];
+              $_SESSION[ 'ts_lon' ]   = $deco[ 2 ]; 
+              $msbas_count = substr_count($deco[0], ",") + 1;
+              $_SESSION[ 'ts_msbas_num' ] = $msbas_count;
+              break;
+            case 'histogram':
+              array_push( $a_histo, $config[$i]->ts_name );
+              break;
+            case 'gnss':
+              array_push( $a_gnss,  $config[$i]->ts_name );
+              break;
+          }
+        } // for
+        $_SESSION[ 'ts_histo_num' ] = count( $a_histo );
+        if( count( $a_histo ) > 0 ) 
+          $_SESSION[ 'ts_histo' ] = '["' . implode( '","', $a_histo ) . '"]';
+        
+        $_SESSION[ 'ts_gnss_num' ]  = count( $a_gnss );
+        if( count( $a_gnss ) > 0 ) 
+          $_SESSION[ 'ts_gnss' ] = '["' . implode( '","', $a_gnss ) . '"]';
+      }
+    }
+    
+    // 3.3 Load layer config
+    $res = $this->status->get_layer_visib();
+    if( $res )
+    {
+      $data[ 'layvis' ] = $res;
+    }
+    else
+    { 
+      $data[ 'layvis' ][0] = (object) array(
+        'bg1_visible' => 1,
+        'bg1_opacity' => 1,
+        'bg2_visible' => 1,
+        'bg2_opacity' => 1,
+        'bg3_visible' => 1,
+        'bg3_opacity' => 1,
+        'bg4_visible' => 1,
+        'bg4_opacity' => 1,
+        'config_visible' => 1,
+        'config_opacity' => 1
+      );
+    }
+    
     $this->load->helper( array( 'menu', 'form' ) );
     $this->load->view( 'mapa', $data ); 
     // $this->load->view( 'footer' );
@@ -86,99 +181,111 @@ class Mapa extends CI_Controller {
   
   
 	/**
-	 * load_ts_async Loads asynchronously (ajax) the timeseries for a coord
+	 * load_ts_async Loads asynchronously (ajax) all timeseries
 	 *
 	 * Maps to
 	 * 		http://server/index.php/Mapa/load_ts_async/
 	 *
    * @access	public
-   * @param   the timeseries to load the point from, and the point coords 
+   * @param   the complete set of timeseries 
    * @return	filters data and calls the adequate function 
 	 */
   public function load_ts_async()
   {
     $this->load->model( 'Userts_model', 'userts' );
     $this->load->model( 'Timeseries_model', 'ts' );
-    $ts_type = $this->input->post('ts_type');
-    $ts_name = json_decode( $this->input->post('ts_name') );
+    $ps_msbas = json_decode( $this->input->post('ts_msbas'), true );
+    $ps_histo = json_decode( $this->input->post('ts_histo'), true );
+    $ps_gnss  = json_decode( $this->input->post('ts_gnss'), true );
     
-    if( $ts_type == 'histogram' ) 
+    $a_lon    = array();
+    $a_lat    = array();
+    $ts_msbas = array(); $ts_histo = array(); $ts_gnss = array();
+    $ps_lon   = json_decode( $this->input->post('lon'), true ); 
+    $ps_lat   = json_decode( $this->input->post('lat'), true ); 
+  
+    // filter all msbas should exist and be granted to the user
+    $totMsbas = count( $ps_msbas );
+    for( $i = 0; $i < $totMsbas; $i ++ )
     {
-      if( is_null( $this->userts->get_ts_user( $ts_name[0], $this->session->userdata( 'email' ) ) ) )
+      if( is_null( $this->userts->get_ts_user( $ps_msbas[ $i ], $this->session->userdata( 'email' ) ) ) )
       {
-        log_message( 'error', 'app/controller/Mapa/E-045 Error: Not found ts ' . $ts_name . ' or not granted ts to user.' );
-        echo 'alert( "Error: Not found timeseries ' . $ts_name . ' or not granted to user.")';
+        log_message( 'error', 'app/controller/Mapa/E-042 Error: Not found ts ' . $ps_msbas[ $i ] . ' or not granted ts to user.' );
+        // echo 'alert( "Error: Not found timeseries ' . $ps_msbas[ $i ] . ' or not granted to user.")';
         return;
       }
-      $ts_data = $this->ts->get_timeseries( $ts_name[0] );
-      if( is_null( $ts_data ) )
-      {
-        log_message( 'error', 'app/controller/Mapa/E-046 Error: Cannot find ts_name ' . $ts_name . '.' );
-        echo 'alert( "Error: Cannot find the timeseries ' . $ts_name . '." )';
-        return;
-      }
-      
-    }
-    else
-    {
-      $a_lon   = array();
-      $a_lat   = array();
-      $ts_data = array();
-      $ar_lon  = json_decode( $this->input->post('lon') ); 
-      $ar_lat  = json_decode( $this->input->post('lat') ); 
-      $tot     = count( $ts_name );
-    
-      // filter all ts_name should exist and be granted to the user
-      for( $i = 0; $i < $tot; $i ++ )
-      {
-        if( is_null( $this->userts->get_ts_user( $ts_name[ $i ], $this->session->userdata( 'email' ) ) ) )
+      else
+      { 
+        // filter all lat and lon be numbers for coords
+        if( ! is_numeric( $ps_lon[ $i ] ) || ! is_numeric( $ps_lat[ $i ] ) )
         {
-          log_message( 'error', 'app/controller/Mapa/E-042 Error: Not found ts ' . $ts_name[ $i ] . ' or not granted ts to user.' );
-          echo 'alert( "Error: Not found timeseries ' . $ts_name[ $i ] . ' or not granted to user.")';
+          log_message( 'error', 'app/controller/Mapa/E-043 Error: Coordinates lat ' . $ps_lat[ $i ] . ' and lon ' . $ps_lon[ $i ] . ' are not numeric.' );
+          // echo 'alert( "Error: Coordinates lat ' . $ps_lat[ $i ] . ' and lon ' . $ps_lon[ $i ] . ' are not numeric." )';
           return;
         }
-        else
-        { 
-          // filter all lat and lon be numbers for coords
-          if( ! is_numeric( $ar_lon[ $i ] ) || ! is_numeric( $ar_lat[ $i ] ) )
-          {
-            log_message( 'error', 'app/controller/Mapa/E-043 Error: Coordinates lat ' . $ar_lat[ $i ] . ' and lon ' . $ar_lon[ $i ] . ' are not numeric.' );
-            echo 'alert( "Error: Coordinates lat ' . $ar_lat[ $i ] . ' and lon ' . $ar_lon[ $i ] . ' are not numeric." )';
-            return;
-          }
-        }
-        $a_lat[ $i ] = round( floatval( $ar_lat[ $i ] ), 3 ); // 3 decimals
-        $a_lon[ $i ] = round( floatval( $ar_lon[ $i ] ), 3 );
+      }
+      $a_lat[ $i ] = round( floatval( $ps_lat[ $i ] ), 3 ); // 3 decimals
+      $a_lon[ $i ] = round( floatval( $ps_lon[ $i ] ), 3 );
 
-        $ts_data[ $i ] = $this->ts->get_timeseries( $ts_name[ $i ] );
-        if( is_null( $ts_data[ $i ] ) )
-        {
-          log_message( 'error', 'app/controller/Mapa/E-044 Error: Cannot find ts_name ' . $ts_name[ $i ] . '.' );
-          echo 'alert( "Error: Cannot find the timeseries ' . $ts_name[ $i ] . '." )';
-          return;
-        }
+      $ts_msbas[ $i ] = $this->ts->get_timeseries( $ps_msbas[ $i ] );
+      if( is_null( $ts_msbas[ $i ] ) )
+      {
+        log_message( 'error', 'app/controller/Mapa/E-044 Error: Cannot find ts_msbas ' . $ts_msbas[ $i ] . '.' );
+        //echo 'alert( "Error: Cannot find the timeseries ' . $ts_msbas[ $i ] . '." )';
+        return;
+      }
+    }
+
+    // filter all histo should exist and be granted to the user
+    $totHisto = count( $ps_histo );
+    for( $i = 0; $i < $totHisto; $i ++ )
+    {
+      if( is_null( $this->userts->get_ts_user( $ps_histo[ $i ], $this->session->userdata( 'email' ) ) ) )
+      {
+        log_message( 'error', 'app/controller/Mapa/E-048 Error: Not found ts ' . $ps_histo[ $i ] . ' or not granted ts to user ' . $this->session->userdata( 'email' ) . '.' );
+        // echo 'alert( "Error: Not found timeseries ' . $ps_histo[ $i ] . ' or not granted to user ' . $this->session->userdata( 'email' ) . '")';
+        return;
+      }
+      $ts_histo[ $i ] = $this->ts->get_timeseries( $ps_histo[ $i ] );
+      if( is_null( $ts_histo[ $i ] ) )
+      {
+        log_message( 'error', 'app/controller/Mapa/E-049 Error: Cannot find ts_histogram ' . $ts_histo[ $i ] . '.' );
+        // echo 'alert( "Error: Cannot find the timeseries ' . $ts_histo[ $i ] . '." )';
+        return;
+      }
+    }
+
+    // filter all histo should exist and be granted to the user
+    $totGnss = count( $ps_gnss );
+    for( $i = 0; $i < $totGnss; $i ++ )
+    {
+      if( is_null( $this->userts->get_ts_user( $ps_gnss[ $i ], $this->session->userdata( 'email' ) ) ) )
+      {
+        log_message( 'error', 'app/controller/Mapa/E-069 Error: Not found ts ' . $ps_gnss[$i] . ' or not granted ts to user.' );
+        // echo 'alert( "Error: Not found timeseries ' . $ps_gnss[ $i ] . ' or not granted to user.")';
+        return;
+      }
+      $ts_gnss[ $i ] = $this->ts->get_timeseries( $ps_gnss[ $i ] );
+      if( is_null( $ts_gnss[ $i ] ) )
+      {
+        log_message( 'error', 'app/controller/Mapa/E-070 Error: Cannot find ts_gnss ' . $ts_gnss[ $i ] . '.' );
+        // echo 'alert( "Error: Cannot find the timeseries ' . $ts_gnss[ $i ] . '." )';
+        return;
       }
     }
     
-    switch( $ts_type )
-    { 
-      case "msbas": 
-        // echo 'alert( "msbas, tsname: ' . $ts_name . ', lat: ' . $lat . ', lon: ' . $lon . '" );';
-        // look for the file with the point $lat $lon, 
-        //   and if it doesn't exist, calculate and then echo 
-        //   ONLY the last one, not all!
-        $this->msbas_point_file_generate( $ts_data[$tot-1], $a_lon[$tot-1], $a_lat[$tot-1] );
-        $this->echo_async_msbas( $tot, $ts_data, $a_lon, $a_lat );
-        break;
-      case "histogram":
-        // echo 'alert( "histogram, station: ' . $ts_name . ', lat: ' . $lat . ', lon: ' . $lon . '" );';
-        // TBD: look for the file with the $station, and if it doesn't exist echo so
-        $this->echo_async_histogram( $ts_data );
-        break;
-      default: break; 
+    // for the latest msbas, look for the file with the point $lat $lon, 
+    //   and if it doesn't exist, calculate and then echo 
+    if( $totMsbas > 0 )
+    {
+      $this->msbas_point_file_generate( $ts_msbas[$totMsbas-1], $a_lon[$totMsbas-1], $a_lat[$totMsbas-1] );
     }
+    
+    // main call: echo (ajax) the whole list of charts
+    $this->echo_async( $totMsbas, $ts_msbas, $a_lon, $a_lat, $totHisto, $ts_histo, $totGnss, $ts_gnss );
 	}
   /* end of function load_ts_async */
+  
   
   
 	/**
@@ -190,12 +297,15 @@ class Mapa extends CI_Controller {
 	 */
   private function msbas_point_file_generate( $msbas, $lon, $lat )  
   {
+    $this->load->helper( 'coord' );
+    
     // 0. convert coords to row,col
-    $xcol = $this->coord2pix( $lon, $msbas->ts_coord_lon_left, $msbas->ts_coord_lon_inc );
-    $yrow = $this->coord2pix( $lat, $msbas->ts_coord_lat_top, $msbas->ts_coord_lat_inc );
+    $xcol = coord2pix( $lon, $msbas->ts_coord_lon_left, $msbas->ts_coord_lon_inc );
+    $yrow = coord2pix( $lat, $msbas->ts_coord_lat_top, $msbas->ts_coord_lat_inc );
     
     // 1. get file name
-    $file = $this->get_ts_file_name( $msbas, "disk", $xcol, $yrow );
+    $this->load->model( 'ts_folder_model', 'tsfolder' );
+    $file = $this->tsfolder->get_ts_file_name( $msbas, "disk", $xcol, $yrow );
     
     // 2. if the file exists, return (nothing to do)
     if( file_exists( $file ) )
@@ -219,345 +329,528 @@ class Mapa extends CI_Controller {
     }
   }
   /* end of function msbas_point_file_generate */
-  
-	/**
-	 * get_ts_file_name Constructs the file name with the ts default + col,row
-	 *
-   * @access	private
-   * @param   the coordinates and the ts, and if it shall return uri or disk link
-   * @return	the file name
-	 */
-  private function get_ts_file_name( $msbas, $type, $xcol, $yrow )
-  {
-    if( $type == "uri" )
-      $file = base_url( "assets/data/msbas/" ) . "/" 
-            . trim( $msbas->ts_file ) 
-            . $this->config->item( 'uri_msbas_ts' ) 
-            . substr( trim( $msbas->ts_file_ts ), 0, $msbas->ts_file_ts_ini_coord );    
-    else // "disk" 
-      $file = $this->config->item( 'folder_msbas' )
-            . trim( $msbas->ts_file ) 
-            . $this->config->item( 'folder_msbas_ts' ) 
-            . substr( trim( $msbas->ts_file_ts ), 0, $msbas->ts_file_ts_ini_coord );
-
-    // assuming pixels with 3 numbers, range 001..999, format XXX_YYY
-    // TBD: use ts_folder->preg_pos regexp
-    $file = $file . $xcol . "_" . $yrow;
-    $file = $file . substr( trim( $msbas->ts_file_ts ), $msbas->ts_file_ts_ini_coord + 7 ); // until the end
-    // echo "looking for file $file \n";
-    return $file;
-  }
-  
-  
-	/**
-	 * coord2pix Converts a coordinate into a pixel, given an origin and increment
-   *        ex: given long 29.215, origin 29.0 and incr 0.0008333
-   *            29.215 - 29 = 0.215 / 0.0008333 = 258
-	 *
-   * @access	private
-   * @param   the coordinate, the origin of the image file and the increment per pixel
-   * @return	the number for the pixel
-	 */
-  private function coord2pix( $coord, $origin, $incr )
-  {
-    $pix = round( abs( $coord - $origin ) / $incr );
-    $pix = sprintf( "%'.03d", $pix );
-    return $pix;
     
-  }
-  /* end of function coord2pix */
   
   
 	/**
-	 * echo_async_msbas Echoes (ajax call) the js msbas series of a point
+	 * echo_async Echoes (ajax call) the js msbas series of a point
 	 *
    * @access	private
    * @param   the number of timeseries, the ts, and the point coords arrays
    * @return	echoes (ajax!) the highcharts.com javascript code for the timeseries 
 	 */
-  private function echo_async_msbas( $tot, $ts_data, $lon, $lat )
+  private function echo_async( $totMsbas, $ts_msbas, $lon, $lat, $totHisto, $ts_histo, $totGnss, $ts_gnss )
   {
-    echo "var fecha, lines, items;                                 \n";
+    echo "var fecha, lines, items, val;                            \n";
+    echo "var dataEW = []; // [ dates, values ] \n";
+    echo "var dataNS = []; // [ dates, values ] \n";
+    echo "var dataUP = []; // [ dates, values ] \n";
+    
     echo "$(function () {                                          \n";
-    for( $i = 0; $i < $tot; $i ++ )
-    {
-      $xcol = $this->coord2pix( $lon[$i], $ts_data[$i]->ts_coord_lon_left, $ts_data[$i]->ts_coord_lon_inc );
-      $yrow = $this->coord2pix( $lat[$i], $ts_data[$i]->ts_coord_lat_top, $ts_data[$i]->ts_coord_lat_inc );
-      
-      $file = $this->get_ts_file_name( $ts_data[$i], "uri", $xcol, $yrow );
-      /* $file = base_url( "assets/data/msbas/" 
-            . trim( $ts_data[$i]->ts_file ) 
-            . "/Time_Series/" 
-            . trim( $ts_data[$i]->ts_file_ts ) ); */
-      echo "  var tsv" . $i . " = $.get( '" . $file . "' );        \n";
-      // 2nd ts
-      /*
-      echo "  var tsv2 = $.get( '" .
-           base_url('assets/data/msbas/UP/Time_Series/VVP_ML_1_Pixel_FullSerie_238_370test_UP._Detrended.dat') . "' ); \n";
-      */   
-    }
-    
-    // wait for async calls to be finished
-    for( $i = 0; $i < $tot; $i ++ )
-    {
-      echo "  tsv" . $i . ".done( function( csv" . $i . " ) {        \n" .
-          "     if( csv" . $i . " == 'false' ) return 'Data not found'; // TBD \n" .
-          "     else {                                               \n";
-      // 2nd ts
-      /*
-      echo "  tsv2.done( function( csv2 ) {                            \n" .
-          "    if( csv2 == 'false' ) return 'Data not found'; // TBD   \n" .
-          "    else {                                                  \n";
-      */    
-    }
-    
-    for( $i = 0; $i < $tot; $i ++ )
-    {    
-      echo "  var data" . $i ." = []; // [ dates, values ]          \n";
-      // 2nd ts
-      /*
-      echo "  var data2 = []; // [ dates, values ]                    \n";
-      */
-    }
+    echo "  var numCharts = Highcharts.charts.length; \n"; 
 
-    for( $i = 0; $i < $tot; $i ++ )
+    if( $totMsbas == 0 ) // back to empty chart, copy of ts-empty.js
     {
-      echo "  lines = csv" . $i . ".split( '\\n' );                    \n" .
-          "  $.each( lines, function( lineNo, line ) {                 \n" .
-          "    items = line.split( '\\t' );                            \n" .
-          "    fecha = tick2Date( items[ 0 ] );                        \n" .
-          "    data" . $i . ".push( [ fecha, parseFloat( items[1] ) ] );\n" .
-          "  });                                                       \n";
-      // 2nd ts
-      /*
-      echo "  lines = csv2.split( '\\n' );                             \n" .
-          "  $.each( lines, function( lineNo, line ) {                 \n" .
-          "    items = line.split( '\\t' );                            \n" .
-          "    fecha = tick2Date( items[ 0 ] );                        \n" .
-          "    data2.push( [ fecha, parseFloat( items[1] ) ] );       \n" .
-          "  });                                                       \n";
-      */
-    }
+      echo 
+       "  $('#chart0').highcharts({ \n" .
+       "    chart: { type: 'column', zoomType: 'x' }, \n" .
+       "    title: { text: 'No data yet' }, \n" .
+       "    xAxis: { type: 'datetime' }, \n" .
+       "    series: [{  \n" .
+       "      name: 'Select a point in the map in order to show the timeseries', \n" .
+       "      lineWidth: 0, \n".
+       "      color: '#fff', \n".
+       "      enableMouseTracking: false, \n".
+       "      formatter: function() { return false; }, \n".
+       "      dataLabels: { \n".
+       "        enabled: true, \n".
+       "        rotation: -90, \n".
+       "        color: '#000', // 877 \n".
+       "        align: 'left', \n" .
+       "        formatter: function() { return ar[ this.x ]; }, \n".
+       "        y: -2, // pixels from the origin \n" .
+       "        style: { \n".
+       "          fontSize: '9px', \n".
+       "          fontFamily: 'Arial Narrow, Arial, Helvetica Condensed, Helvetica, sans-serif' \n". 
+       "        } \n".
+       "      }, \n".
+       "      data: dataH  \n" .
+       "    }], \n" .
+       "    exporting: { buttons: { contextButton: { align: 'left' } } } \n".
+       " });  \n";
+    }    
+    else // at least one msbas
+    {
+      $this->load->helper( 'coord' );
     
-    echo "  $('#container').highcharts({                             \n" .
-        "    chart: { type: 'line', zoomType: 'x' },                 \n" .
-        "    title: { text: 'Timeseries of MSBAS' },                 \n" .
-        "    xAxis: {                                                \n" .
-        "      type: 'datetime',                                     \n" .
-        "      gridLineWidth: 1                                      \n" .
-        "    },                                                      \n" .
-        "    yAxis: {                                                \n" .
-        "      title: { text: 'displacement in cm' },                \n" .
-        "      alternateGridColor: '#f5f5f5'                         \n" .
-        "    },                                                      \n";
+      $detrend = array();
+      for( $i = 0; $i < $totMsbas; $i ++ )
+      {
+        $xcol = coord2pix( $lon[$i], $ts_msbas[$i]->ts_coord_lon_left, $ts_msbas[$i]->ts_coord_lon_inc );
+        $yrow = coord2pix( $lat[$i], $ts_msbas[$i]->ts_coord_lat_top, $ts_msbas[$i]->ts_coord_lat_inc );
+
+        $this->load->model( 'ts_folder_model', 'tsfolder' );
+        $file = $this->tsfolder->get_ts_file_name( $ts_msbas[$i], "uri", $xcol, $yrow );
+
+        // if detrend exists for that point, get it instead
+        $detrend[ $i ] = false;
+        $this->load->model( 'detrend_model', 'detrend' );
+        if( $this->detrend->detrend_exists( "msbas", $ts_msbas[$i]->ts_name, "", $lat[$i], $lon[$i] ) )
+        {
+          $detrend[ $i ] = true;
+          $file = $this->detrend->get_detrend_filepath( "msbas", $ts_msbas[$i]->ts_name, "", $lat[$i], $lon[$i], 'detrend', 'uri' );
+        }
+        // log_message( 'error', $i . ' - file ' . $file );
         
-    echo "    series: [{                                             \n";
-    for( $i = 0; $i < $tot; $i ++ )
-    {
-      echo "      name:  '" . trim( $ts_data[$i]->ts_name ) .
-           "           lat: " . $lat[$i] . " lon: " . $lon[$i] . "', \n" .
-           "      data: data" . $i . "                               \n" .
-           "    }                                                    \n";
-      if( $i + 1 < $tot ) echo " , {                                 \n";
-      // 2nd ts
-      /*
-      echo "    , {                                                    \n" .
-          "      name:  'name...',                                     \n" .
-          "      color: '#6d6',                                        \n" .
-          "      data: data2                                           \n" .
-          "    }                                                       \n";
-      */
-    }
+        echo "  var tsv" . $i . " = $.get( '" . $file . "' );        \n";
+      }
+      
+      // wait for async calls to be finished
+      for( $i = 0; $i < $totMsbas; $i ++ )
+      {
+        echo "  tsv" . $i . ".done( function( csv" . $i . " ) {        \n" .
+            "     if( csv" . $i . " == 'false' ) return 'Data not found';  \n" .
+            "     else {                                               \n";
+      }
+      
+      for( $i = 0; $i < $totMsbas; $i ++ )
+      {    
+        echo "  var data" . $i ." = []; // [ dates, values ]          \n";
+      }
 
-    echo "    ],                                                     \n" .
-        "    legend: {                                               \n" .
-        "      align: 'right',                                       \n" .
-        "      x: -30,                                               \n" .
-        "      verticalAlign: 'top',                                 \n" .
-        "      y: 25,                                                \n" .
-        "      floating: true,                                       \n" .
-        "      backgroundColor: (Highcharts.theme &&                 \n" .
-        "            Highcharts.theme.background2) || 'white',       \n" .
-        "      borderColor: '#CCC',                                  \n" .
-        "      borderWidth: 1,                                       \n" .
-        "      shadow: false                                         \n" . 
-        "    },                                                      \n" .
-        "    tooltip: {                                              \n" .
-        "      useHTML: true,                                        \n" .
-        "      formatter: function () {                              \n" .
-        "var d = new Date( this.x );                                 \n" .
-        "var day = d.getDate() + 1;  if( day < 10 ) day = '0' + day; \n" .
-        "var mon = d.getMonth() + 1; if( mon < 10 ) mon = '0' + mon; \n" .
-        "var fecha = d.getFullYear() + '-' + mon + '-' + day;        \n" .
-        "var total = this.point.stackTotal;                          \n" .
-        "var str = '<b>' + fecha + '</b><br/>' +                     \n" .
-        "          this.series.name + ': ' + this.y + '<br/>';       \n" .
-        "if( typeof total != 'undefined' )                           \n" .
-        "  str = str + 'Total: ' + total;                            \n" .
-        "return str;                                                 \n" .
-        "      }                                                     \n" .
-        "    },                                                      \n" .
-        "    plotOptions: {                                          \n" .
-        "        column: { stacking: 'normal' }                      \n" .  
-        "    },                                                      \n" .
-        "    exporting: {                                            \n" .
-        "        enabled: true,                                      \n" .
-        "        buttons: {                                          \n" .
-        "          contextButton: {                                  \n" .
-        "            align: 'left',                                  \n" .
-        "            x: 10,                                          \n" .
-        "            menuItems: [{                                   \n";
-         
-    echo "      text: 'manage timeseries',                           \n" .
-         "              onclick: function() {                        \n" .
-         "                $('#modalTS').modal('show');               \n" .
-         "              }                                            \n" .
-         "            }, {                                           \n"; 
+      for( $i = 0; $i < $totMsbas; $i ++ )
+      {
+        echo "  lines = csv" . $i . ".split( '\\n' );                  \n" .
+            "  $.each( lines, function( lineNo, line ) {               \n" .
+            "    items = line.split( '\\t' );                          \n" .
+            "    fecha = tick2Date( items[ 0 ] );                      \n" .
+            "    data".$i.".push( [ fecha, parseFloat( items[1] ) ] );\n" .
+            "  });                                                     \n";
+      }
 
-    echo "         text: 'export to PNG',                            \n" .
-        "              onclick: function() {                         \n" .
-        "                this.exportChart();                         \n" .
-        "              }                                             \n" .
-        "            }]                                              \n" .
-        "          }                                                 \n" .
-        "        }                                                   \n" .
-        "      }                                                     \n";        
-        echo "  });                                                  \n";
+      // load every msbas in the same chart 
+      echo "  $('#chart0').highcharts({                           \n" .
+          "    chart: { type: 'line', zoomType: 'x' },                 \n" .
+          "    title: { text: 'Timeseries of MSBAS' },                 \n" .
+          "    xAxis: {                                                \n" .
+          "      type: 'datetime',                                     \n" .
+          "      gridLineWidth: 1,                                     \n" .
+          "      crosshair: true, \n ". 
+          "      events: { \n".
+//          "          setExtremes: syncExtremes \n".
+          "      } \n".
+          "    },                                                      \n" .
+          "    yAxis: {                                                \n" .
+          "      title: { text: 'displacement in cm' },                \n" .
+          "      alternateGridColor: '#f5f5f5'                         \n" .
+          "    },                                                      \n";
+          
+      echo "    series: [{                                             \n";
+      
+      // events
+      echo "         name: 'events', \n" .
+           "         lineWidth: 0, \n" .
+           "         color: '#fff', \n" .
+           "         showInLegend: false,  \n" .
+           "         enableMouseTracking: false, \n" .
+           //"         formatter: function() { return this.y; }, \n".
+           "         dataLabels: { \n" .
+           "             enabled: true, \n" .
+           "             rotation: -90, \n" .
+           "             color: '#000', // 877 \n" .
+           "             align: 'left', \n" .
+           "             formatter: function() { \n" .
+           "               return ar[ this.x ]; \n" .
+           "             }, \n" .
+           "             y: -2, // pixels from the origin \n" .
+           "             style: { \n" .
+           "                 fontSize: '9px', \n" .
+           "                 fontFamily: 'Arial Narrow, Arial, Helvetica Condensed, Helvetica, sans-serif' \n" .
+           "             } \n" .
+           "         }, \n" .
+           "         data: dataH \n" .
+           "     }, { \n";
+      
+      for( $i = 0; $i < $totMsbas; $i ++ )
+      {
+        $det = ( $detrend[ $i ] ) ? "detrended" : "";
 
-    for( $i = 0; $i < $tot; $i ++ )
-    {
-      // 2nd ts
-      /*
-      echo "  } });                                                  \n";
-      */
-      echo "  } });                                                  \n";
-    }
-    echo "});                                                        \n";
+        echo "      name:  '" . $det . " " . trim( $ts_msbas[$i]->ts_name ) .
+             "           lat: " . $lat[$i] . " lon: " . $lon[$i] . "', \n" .
+             "         showInLegend: true,  \n" .
+             "         enableMouseTracking: true, \n" .
+             "      data: data" . $i . "                               \n" .
+             "    }                                                    \n";
+        if( $i + 1 < $totMsbas ) echo " , {                            \n";
+      }
+      
+      echo "    ],                                                     \n" .
+          "    legend: {                                               \n" .
+          "      align: 'right',                                       \n" .
+          "      x: -30,                                               \n" .
+          "      verticalAlign: 'top',                                 \n" .
+          "      y: 25,                                                \n" .
+          "      floating: true,                                       \n" .
+          "      backgroundColor: (Highcharts.theme &&                 \n" .
+          "            Highcharts.theme.background2) || 'white',       \n" .
+          "      borderColor: '#CCC',                                  \n" .
+          "      borderWidth: 1,                                       \n" .
+          "      shadow: false                                         \n" . 
+          "    },                                                      \n" .
+          "    tooltip: {                                              \n" .
+          "      useHTML: true,                                        \n" .
+          "      formatter: function () {                              \n" .
+          "        if (this.series.name != 'events') { \n".
+          "var d = new Date( this.x );                                 \n" .
+          "var day = d.getDate() + 1;  if( day < 10 ) day = '0' + day; \n" .
+          "var mon = d.getMonth() + 1; if( mon < 10 ) mon = '0' + mon; \n" .
+          "var fecha = d.getFullYear() + '-' + mon + '-' + day;        \n" .
+          "var total = this.point.stackTotal;                          \n" .
+          "var str = '<b>' + fecha + '</b><br/>' +                     \n" .
+          "          this.series.name + ': ' + this.y + '<br/>';       \n" .
+          "if( typeof total != 'undefined' )                           \n" .
+          "  str = str + 'Total: ' + total;                            \n" .
+          "return str;                                                 \n" .
+          "        } // if not events \n".
+          "      }                                                     \n" .
+          "    },                                                      \n" .
+          "    plotOptions: {                                          \n" .
+          "        column: { stacking: 'normal' }                      \n" .  
+          "    },                                                      \n" .
+          "    exporting: {                                            \n" .
+          "        enabled: true,                                      \n" .
+          "        buttons: {                                          \n" .
+          "          contextButton: {                                  \n" .
+          "            align: 'left',                                  \n" .
+          "            x: 10,                                          \n" .
+          "            menuItems: [{                                   \n";
+           
+      echo "      text: 'manage timeseries',                           \n" .
+           "              onclick: function() {                        \n" .
+           "                $('#modalTS').modal('show');               \n" .
+           "              }                                            \n" .
+           "            }, {                                           \n"; 
+
+      echo "      text: 'detrend timeseries',                          \n" .
+           "              onclick: function() {                        \n" .
+           "                call_modal_detrend_ts('msbas', 0);\n" .
+           "              }                                            \n" .
+           "            }, {                                           \n"; 
+           
+      echo "         text: 'export to PNG',                            \n" .
+          "              onclick: function() {                         \n" .
+          "                this.exportChart();                         \n" .
+          "              }                                             \n" .
+          "            }]                                              \n" .
+          "          }                                                 \n" .
+          "        }                                                   \n" .
+          "      }                                                     \n";        
+          echo "  });                                                  \n";
+
+      for( $i = 0; $i < $totMsbas; $i ++ )
+      {
+        echo "  } });                                                  \n";
+      }
+    } // end msbas
+
     
-  }
-  /* end of function echo_async_msbas */ 
+    /** end msbas, start histogram **/
+    if( $totHisto > 0 )
+    {
+      for( $nth = 1; $nth <= $totHisto; $nth ++ )
+      {
+        // $nth = $totHisto - 1;
+        $obj = $ts_histo[$nth - 1];
+        $seism_station = trim( $obj->ts_seism_station );
+        $seism_file    = trim( $obj->ts_file );
+        
+        echo "  $.get('" . $this->config->item('uri_histogram') . $seism_file . "'," .
+           "        function(csv) {                                \n";
+        // charts created in ts-empty.js
+        echo "$('#chart" . $nth . "').highcharts({\n";
+        echo
+           "      chart: {                                              \n" .
+           "        type: 'column', zoomType: 'x'                       \n" .
+           "      },                                                    \n" .
+           "      title: {                                              \n" .
+           "        text: '" . $seism_station . " seismic station'     \n" .
+           "      },                                                    \n" .
+           "      data: {                                               \n" .
+           "        csv: csv,                                           \n" .
+           "        itemDelimiter: '\\t',                               \n" .
+           "        lineDelimiter: '\\n'                                \n" .
+           "      },                                                    \n" . 
+           "      series: [{                                            \n" .  
+           "        type:  'column',                                    \n" .
+           "        name:  'LP',                                        \n" .
+           "        yAxis: 0,                                           \n" .
+           "        allowPointSelect: true,                             \n" .  
+           "        color: '#66d',                                      \n" .
+           "      }, {                                                  \n" .
+           "        type:  'column',                                    \n" .
+           "        name:  'SP',                                        \n" .
+           "        yAxis: 0,                                           \n" . 
+           "        allowPointSelect: true,                             \n" .
+           "        color: '#d66',                                      \n" .
+           "      }, {                                                  \n" .
+           "        type:  'line',                                      \n" .
+           "        name:  'LP-accumulated',                            \n" .
+           "        yAxis: 1,                                           \n" .
+           "        allowPointSelect: true,                             \n" .
+           "        color: 'blue'                                       \n" .
+           "      }, {                                                  \n" .
+           "        type:  'line',                                      \n" .
+           "        name:  'SP-accumulated',                            \n" .
+           "        yAxis: 2,                                           \n" . 
+           "        allowPointSelect: true,                             \n" .
+           "        color: 'red'                                        \n" .
+           "      }],                                                   \n" .
+           "      xAxis: { \n" .
+           "        type: 'datetime', \n".
+           "        crosshair: true,  \n". 
+           "        events: {  \n".
+//           "          setExtremes: syncExtremes  \n".
+           "        }  \n".
+           "      },  \n".
+           "      yAxis: [{                                             \n" .
+           "        min: 0,                                             \n" .
+           "        title: { text: 'number of events' }                 \n" .
+           "      }, { // secondary yAxis for LP-accumulated            \n" .  
+           "        opposite: true,                                     \n" .
+           "        min: 0,                                             \n" .
+           "        title: { text: 'LP-accumulated' }                   \n" .
+           "      }, { // secondary yAxis for SP-accumulated            \n" .
+           "        opposite: true,                                     \n" . 
+           "        min: 0,                                             \n" .
+           "        title: { text: 'SP-accumulated' }                   \n" .
+           "      }],                                                   \n" .
+           "      legend: {                                             \n" .
+           "        align: 'right',                                     \n" .
+           "        x: -30,                                             \n" .
+           "        verticalAlign: 'top',                               \n" .
+           "        y: 25,                                              \n" .
+           "        floating: true,                                     \n" .
+           "        backgroundColor: (Highcharts.theme &&               \n" .
+           "                  Highcharts.theme.background2) || 'white', \n" .
+           "        borderColor: '#CCC',                                \n" .
+           "        borderWidth: 1,                                     \n" .
+           "        shadow: false                                       \n" .
+           "      },                                                    \n" .
+           "      tooltip: {                                            \n" .
+           "        formatter: function () {                            \n" .
+           "var d = new Date( this.x );                             \n" .
+           "var day = d.getDate();  if( day < 10 ) day = '0' + day; \n" .
+           "var mon = d.getMonth(); if( mon < 10 ) mon = '0' + mon; \n" .
+           "var fecha = d.getFullYear() + '-' + mon + '-' + day;    \n" .
+           "var total = this.point.stackTotal;                      \n" .
+           "var str = '<b>' + fecha + '</b><br/>' +                 \n" .
+           "         this.series.name + ': ' + this.y + '<br/>';    \n" .
+           "if( typeof total != 'undefined' )                       \n" .  
+           "  str = str + 'Total: ' + total;                        \n" .
+           "return str;                                             \n" .
+           "        }                                               \n" .
+           "      },                                                    \n" .
+           "      plotOptions: {                                        \n" .
+           "        column: { stacking: 'normal' }                      \n" .  
+           "      },                                                    \n" .
+           "      exporting: {                                          \n" .
+           "        enabled: true,                                      \n" .
+           "        buttons: {                                          \n" .
+           "          contextButton: {                                  \n" .
+           "            align: 'left',                                  \n" .
+           "            x: 10,                                          \n" .
+           "            menuItems: [{                                   \n";
+           
+           echo "      text: 'remove timeseries',                       \n" .
+           "              onclick: function() {                         \n" .
+     " var i=ts_seism_data.indexOf('".$seism_station."');" .
+     " ts_seism_data.splice( i, 1 ); " .
+     " $('#chart" . $nth . "').remove(); " .
+     " ts_seism_num --; " .
+     " this.destroy(); " .
+     " $.ajax({type: 'POST', ".
+     "      url: '/index.php/status/ajaxTSConfig/', " .
+     "      data: { ts_msbas: array2json( ts_msbas_data ), " .
+     "              ts_histo: array2json( ts_seism_data ), " . 
+     "              ts_gnss: array2json(  ts_gnss_data  ), " . 
+     "              lon:  array2json( ts_msbas_lon ), " . 
+     "              lat:  array2json( ts_msbas_lat ) }, " . 
+     "      success: function(result){ " .
+     "      }, " .
+     "      error: function( jqXHR, textStatus, errorThrown ) { " .
+     "         console.log(JSON.stringify(jqXHR)); ".
+     "         console.log('AJAX error: ' + textStatus + ' : ' + errorThrown); ".
+     "      } ".
+     "   });  ".
+     " return false; " .
+           "              }                                             \n" .
+           "            }, {                                            \n"; 
 
+           echo "         text: 'export to PNG',                        \n" .
+           "              onclick: function() {                         \n" .
+           "                this.exportChart();                         \n" .
+           "              }                                             \n" .
+           "            }]                                              \n" .
+           "          } // contextButton                                \n" .
+           "        } // buttons                                        \n" .
+           "      } // exporting                                       \n" .
+           "    }); // highcharts - histogram                           \n" .
+           "  }); // get csv histogram                                  \n";
+      } // for histograms     
+    } // if any histograms
+    
+    /** end histogram, start gnss **/
+    $s = "";
+    if( $totGnss > 0 )
+    {
+      for( $nth = 1; $nth <= $totGnss; $nth ++ )
+      {
+        $obj = $ts_gnss[$nth - 1];
+        $gnss_station = trim( $obj->ts_seism_station ); // field name is same as ts_seim_station
+        $gnss_file    = trim( $obj->ts_file );
+        
+        // if detrend exists for that point, get it instead
+        $this->load->model( 'detrend_model', 'detrend' );
+        if( $this->detrend->detrend_exists( "gnss", $obj->ts_name, 'EW', 0, 0 ) ) 
+          { $detrendEW = true;  $nameEW = "EW detrended"; }
+        else
+          { $detrendEW = false; $nameEW = "EW"; }
+        if( $this->detrend->detrend_exists( "gnss", $obj->ts_name, 'NS', 0, 0 ) ) 
+          { $detrendNS = true;  $nameNS = "NS detrended"; }
+        else
+          { $detrendNS = false; $nameNS = "NS"; }
+        if( $this->detrend->detrend_exists( "gnss", $obj->ts_name, 'UP', 0, 0 ) ) 
+          { $detrendUP = true;  $nameUP = "UP detrended"; }
+        else
+          { $detrendUP = false; $nameUP = "UP"; }
+        
+        if( $detrendEW or $detrendNS or $detrendUP )
+        {
+          $file = $this->detrend->get_detrend_filepath( "gnss", $obj->ts_name, "", 0, 0, 'detrend', 'uri' );
+          // log_message( 'error', $i . ' - file ' . $file );
+          $s .= "  var gnss" . $nth . " = $.get('" . $file . "' ); \n";
+        }
+        else
+        {
+          $s .= "  var gnss" . $nth . " = $.get('" . $this->config->item('uri_gnss') 
+                                             . $gnss_file . "' ); \n";
+        }
+        $s .="gnss" . $nth . ".done( function( csv ) { \n".
+             "  if( csv == 'false') return 'Data not found'; \n".
+             "  else { \n" .
+             "    lines = csv.split( '\\n' ); \n" .
+             "    $.each(lines, function(lineNo, line) { \n" .
+             "      if( line.length > 0 ) { \n";
+             // ATT: date is separated with \\t from *the espaced values* 
+        $s .="        items = line.split( '\\t' );  \n" .
+             "        fecha = tick2Date( items[0] ); \n".
+             "        val = items[1].split( ' ' );\n" .
+             "        dataEW.push([fecha,round_number(parseFloat(val[0])/10,2)]);\n".
+             "        dataNS.push([fecha,round_number(parseFloat(val[1])/10,2)]);\n".
+             "        dataUP.push([fecha,round_number(parseFloat(val[2])/10,2)]);\n".
+             "      } //if \n" .
+             "    }); //each \n";
+       
+        
+        $s .="    $('#chart" . ( $nth + $totHisto ) . "').highcharts({\n" .
+             "      chart: { type: 'line', zoomType: 'x' }, \n".
+             "      title: {                                              \n" .
+             "        text: '" . $gnss_station . " GNSS station'     \n" .
+             "      },                                                    \n" .
+             "      legend: {                                             \n" .
+             "        align: 'right',                                     \n" .
+             "        x: -30,                                             \n" .
+             "        verticalAlign: 'top',                               \n" .
+             "        y: 25,                                              \n" .
+             "        floating: true,                                     \n" .
+             "        backgroundColor: (Highcharts.theme &&               \n" .
+             "                  Highcharts.theme.background2) || 'white', \n" .
+             "        borderColor: '#CCC',                                \n" .
+             "        borderWidth: 1,                                     \n" .
+             "        shadow: false                                       \n" .
+             "      },                                                    \n" .
+             "      xAxis: { type: 'datetime' }, \n".
+             "      yAxis: {                                              \n" .
+             "        title: { text: 'displacement in cm' },              \n" .
+             "        alternateGridColor: '#f5f5f5'                       \n" .
+             "      },                                                    \n" .
+             "      series: [{ name: '$nameEW', data: dataEW, color:'#aa0000' \n".
+             "             },{ name: '$nameNS', data: dataNS, color:'#0000aa' \n".
+             "             },{ name: '$nameUP', data: dataUP, color:'#00aa00'}],\n"; 
+          
+        $s.="     tooltip: {                                        \n" .
+           "        formatter: function () {                        \n" .
+           "var d = new Date( this.x );                             \n" .
+           "var day = d.getDate();  if( day < 10 ) day = '0' + day; \n" .
+           "var mon = d.getMonth(); if( mon < 10 ) mon = '0' + mon; \n" .
+           "var fecha = d.getFullYear() + '-' + mon + '-' + day;    \n" .
+           "var total = this.point.stackTotal;                      \n" .
+           "var str = '<b>' + fecha + '</b><br/>' +                 \n" .
+           "         this.series.name + ': ' + this.y + '<br/>';    \n" .
+           "if( typeof total != 'undefined' )                       \n" .  
+           "  str = str + 'Total: ' + total;                        \n" .
+           "return str;                                             \n" .
+           "        }                                               \n" .
+           "      },                                                \n";
+             
+        $s.= "      exporting: {                                        \n" .
+             "        enabled: true,                                    \n" .
+             "        buttons: {                                        \n" .
+             "        contextButton: {                                  \n" .
+             "          align: 'left',                                  \n" .
+             "          x: 10,                                          \n" .
+             "          menuItems: [{                                   \n";
+        $s.= "            text: 'remove timeseries',                    \n" .
+             "            onclick: function() {                         \n" .
+     " var i=ts_gnss_data.indexOf('".$gnss_station."'); \n" .
+     " ts_gnss_data.splice( i, 1 ); \n" .
+     " $('#chart" . ( $nth + $totHisto ) . "').remove(); \n" .
+     " ts_gnss_num --; \n" .
+     " this.destroy(); \n" .
+     " $.ajax({type: 'POST', \n".
+     "      url: '/index.php/status/ajaxTSConfig/', \n" .
+     "      data: { ts_msbas: array2json( ts_msbas_data ), \n" .
+     "              ts_histo: array2json( ts_seism_data ), \n" . 
+     "              ts_gnss: array2json(  ts_gnss_data  ), \n" . 
+     "              lon:  array2json( ts_msbas_lon ), \n" . 
+     "              lat:  array2json( ts_msbas_lat ) }, \n" . 
+     "      success: function(result){ \n" .
+     "      }, \n" .
+     "      error: function( jqXHR, textStatus, errorThrown ) { \n" .
+     "         console.log(JSON.stringify(jqXHR)); \n".
+     "         console.log('AJAX error: ' + textStatus + ' : ' + errorThrown); \n".
+     "      } \n".
+     "   });  \n".
+     " return false; \n" .
+           "              }                                             \n" .
+           "            }, {                                            \n"; 
+           
+      $s.= "      text: 'detrend timeseries',                          \n" .
+           "              onclick: function() {                        \n" .
+           "                call_modal_detrend_ts('gnss', " . ($nth) . ");\n" .
+           "              }                                            \n" .
+           "            }, {                                           \n"; 
+           
+      $s.= "         text: 'export to PNG',                        \n" .
+           "              onclick: function() {                         \n" .
+           "                this.exportChart();                         \n" .
+           "              }                                             \n" .
+           "            }]                                              \n" .
+           "          } // contextButton                                \n" .
+           "        } // buttons                                        \n" .
+           "      } // exporting                                       \n";
+           
+        $s .="    });  // chartnth \n";  
+        $s .="  } // else data found \n" .
+             "}); //done \n ";
+      } // for nth
+    } // end gnss 
+    // log_message( 'error', $s );
+    echo $s . "}); \n"; // $.ready
   
- /**
-	 * echo_async_histogram Echoes (ajax call) the js histogram of a point
-	 *
-   * @access	private
-   * @param   the station timeseries
-   * @return	echoes (ajax!) the highcharts.com javascript code for the timeseries 
-	 */
-  private function echo_async_histogram( $ts_data )
-  {
-    echo "$(function () {                                             \n" .  
-         "  $.get('/assets/data/seism-count/" .$ts_data->ts_file. "', \n" .
-         "        function(csv) {                                     \n" .
-         "    $('#container').highcharts({                            \n" .
-         "      chart: {                                              \n" .
-         "        type: 'column', zoomType: 'x'                       \n" .
-         "      },                                                    \n" .
-         "      title: {                                              \n" .
-         "        text: '" . 
-            $ts_data->ts_seism_station . " seismic station'           \n" .
-         "      },                                                    \n" .
-         "      data: {                                               \n" .
-         "        csv: csv,                                           \n" .
-         "        itemDelimiter: '\\t',                               \n" .
-         "        lineDelimiter: '\\n'                                \n" .
-         "      },                                                    \n" . 
-         "      series: [{                                            \n" .  
-         "        type:  'column',                                    \n" .
-         "        name:  'LP',                                        \n" .
-         "        yAxis: 0,                                           \n" .
-         "        allowPointSelect: true,                             \n" .  
-         "        color: '#66d',                                      \n" .
-         "      }, {                                                  \n" .
-         "        type:  'column',                                    \n" .
-         "        name:  'SP',                                        \n" .
-         "        yAxis: 0,                                           \n" . 
-         "        allowPointSelect: true,                             \n" .
-         "        color: '#d66',                                      \n" .
-         "      }, {                                                  \n" .
-         "        type:  'line',                                      \n" .
-         "        name:  'LP-accumulated',                            \n" .
-         "        yAxis: 1,                                           \n" .
-         "        allowPointSelect: true,                             \n" .
-         "        color: 'blue'                                       \n" .
-         "      }, {                                                  \n" .
-         "        type:  'line',                                      \n" .
-         "        name:  'SP-accumulated',                            \n" .
-         "        yAxis: 2,                                           \n" . 
-         "        allowPointSelect: true,                             \n" .
-         "        color: 'red'                                        \n" .
-         "      }],                                                   \n" .
-         "      yAxis: [{                                             \n" .
-         "        min: 0,                                             \n" .
-         "        title: { text: 'number of events' }                 \n" .
-         "      }, { // secondary yAxis for LP-accumulated            \n" .  
-         "        opposite: true,                                     \n" .
-         "        min: 0,                                             \n" .
-         "        title: { text: 'LP-accumulated' }                   \n" .
-         "      }, { // secondary yAxis for SP-accumulated            \n" .
-         "        opposite: true,                                     \n" . 
-         "        min: 0,                                             \n" .
-         "        title: { text: 'SP-accumulated' }                   \n" .
-         "      }],                                                   \n" .
-         "      legend: {                                             \n" .
-         "        align: 'right',                                     \n" .
-         "        x: -30,                                             \n" .
-         "        verticalAlign: 'top',                               \n" .
-         "        y: 25,                                              \n" .
-         "        floating: true,                                     \n" .
-         "        backgroundColor: (Highcharts.theme &&               \n" .
-         "                  Highcharts.theme.background2) || 'white', \n" .
-         "        borderColor: '#CCC',                                \n" .
-         "        borderWidth: 1,                                     \n" .
-         "        shadow: false                                       \n" .
-         "      },                                                    \n" .
-         "      tooltip: {                                            \n" .
-         "        formatter: function () {                            \n" .
-         "var d = new Date( this.x );                             \n" .
-         "var day = d.getDate();  if( day < 10 ) day = '0' + day; \n" .
-         "var mon = d.getMonth(); if( mon < 10 ) mon = '0' + mon; \n" .
-         "var fecha = d.getFullYear() + '-' + mon + '-' + day;    \n" .
-         "var total = this.point.stackTotal;                      \n" .
-         "var str = '<b>' + fecha + '</b><br/>' +                 \n" .
-         "         this.series.name + ': ' + this.y + '<br/>';    \n" .
-         "if( typeof total != 'undefined' )                       \n" .  
-         "  str = str + 'Total: ' + total;                        \n" .
-         "return str;                                             \n" .
-         "        }                                               \n" .
-         "      },                                                    \n" .
-         "      plotOptions: {                                        \n" .
-         "        column: { stacking: 'normal' }                      \n" .  
-         "      },                                                    \n" .
-         "      exporting: {                                          \n" .
-         "        enabled: true,                                      \n" .
-         "        buttons: {                                          \n" .
-         "          contextButton: {                                  \n" .
-         "            align: 'left',                                  \n" .
-         "            x: 10,                                          \n" .
-         "            menuItems: [{                                   \n";
-         
-         /* echo "      text: 'manage timeseries',                    \n" .
-         "              onclick: function() {                         \n" .
-         "                $('#modalTS').modal('show');                \n" .
-         "              }                                             \n" .
-         "            }, {                                            \n"; */
-
-         echo "         text: 'export to PNG',                        \n" .
-         "              onclick: function() {                         \n" .
-         "                this.exportChart();                         \n" .
-         "              }                                             \n" .
-         "            }]                                              \n" .
-         "          }                                                 \n" .
-         "        }                                                   \n" .
-         "      }                                                     \n" .        
-         "    });                                                     \n" .
-         "  });                                                       \n" .
-         "});                                                         \n";
-  
   }
-  /* end of function echo_async_histogram */ 
-
+  /* end of function echo_async */ 
+  
 }
 
 /* End of file Mapa.php */

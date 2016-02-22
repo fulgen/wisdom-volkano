@@ -36,12 +36,11 @@
  * @filesource
  */
 
- if( ! ini_get('date.timezone') )
+if( ! ini_get('date.timezone') )
 {
    date_default_timezone_set('Europe/Luxembourg');
 }  
 
- 
 /*
  *---------------------------------------------------------------
  * APPLICATION ENVIRONMENT
@@ -61,9 +60,7 @@
  */
 	// define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'development');
   
-  if( $_SERVER[ 'SERVER_PORT' ] == 8085  ) 
-    define('ENVIRONMENT', 'development');
-  elseif( $_SERVER[ 'SERVER_PORT' ] == 8082  ) 
+  if( $_SERVER[ 'SERVER_PORT' ] == 8082  ) 
     define('ENVIRONMENT', 'testing');
   elseif( $_SERVER[ 'SERVER_PORT' ] == 80  ) 
     define('ENVIRONMENT', 'production');
@@ -80,23 +77,14 @@
  */
 switch (ENVIRONMENT)
 {
-	case 'development':
 	case 'testing':
-		error_reporting(-1);
-		ini_set('display_errors', '1');
+		error_reporting(E_ALL);
+		ini_set('display_errors', 1);
 	break;
 
 	case 'production':
-		ini_set('display_errors', '0'); 
-		if (version_compare(PHP_VERSION, '5.3', '>='))
-		{
-			error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_STRICT & ~E_USER_NOTICE & ~E_USER_DEPRECATED);
-		}
-		else
-		{
-			error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT & ~E_USER_NOTICE);
-		}
-		//error_reporting(-1); // dev
+		error_reporting(E_ALL);
+		ini_set('display_errors', 0);
 	break;
 
 	default:

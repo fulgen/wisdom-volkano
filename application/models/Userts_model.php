@@ -182,7 +182,7 @@ class Userts_model extends CI_Model {
 		$this->load->database();
 		$this->db->where( 'user_email', $user_email );
     $this->db->order_by( 'config_order', 'ASC' );
-		$this->db->select( 'timeseries.ts_name, config_visible, config_opacity, config_order, config_loaded, ts_type, ts_file_ts, ts_file' );
+		$this->db->select( 'timeseries.ts_name, config_visible, config_opacity, config_order, config_loaded, ts_type, ts_file_ts, ts_file, timeseries.ts_seism_station' );
     $this->db->from( 'user_timeseries' );
     $this->db->join( 'timeseries', 'timeseries.ts_name = user_timeseries.ts_name' );
 		$query = $this->db->get();

@@ -1,3 +1,11 @@
+/* highcharts */
+#container { height: 265px; }
+.chart {
+  padding: 0;
+  height: 265px; max-height: 265px;
+}
+
+#searchcoord { margin: 5px 0; }
 
 /* click on the map popup */
 .ol-popup {
@@ -44,4 +52,8 @@
 }
 body.dragging, body.dragging * {
   cursor: move !important;
+}
+.ol-popup p {
+  font-family: "Arial Narrow", Arial, "Helvetica Condensed", Helvetica, sans-serif;
+  font-size: 10px;
 }

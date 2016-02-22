@@ -7,11 +7,16 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 	<title>Help | wisdom-volkano</title>
 
   <link href="<?php echo base_url('assets/css/bootstrap.min.css'); ?>" rel="stylesheet" />
-  <link href="<?php echo base_url('assets/css/docs.min.css'); ?>" rel="stylesheet" />
+  <link href="<?php echo base_url('assets/css/bootstrap-toc.min.css'); ?>" rel="stylesheet" />
+  
+  <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+  <script src="<?php echo base_url('assets/js/jquery-2.2.0.min.js');?>"></script>
+  <!-- Include all compiled plugins (below), or include individual files as needed -->
+  <script src="<?php echo base_url('assets/js/bootstrap.min.js');?>"></script>
+  <script src="<?php echo base_url('assets/js/bootstrap-toc.min.js');?>"></script>
 </head>
-<body>
 
-<body>
+<body data-spy="scroll" data-target="#toc">
   <div class="container-fluid">
       <div class="row Navigation">
           <div class="menu col-lg-12">
@@ -19,7 +24,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
           </div>
       </div>
       <div class="row Main">
-          <div class="col-lg-9">
+          <div class="col-xs-9">
 
           
 <h1 id="help">Help of wisdom-volkano</h1>
@@ -28,8 +33,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 <p>This analysis will contribute to some broader multidisciplinary research projects, like the GeoRisCa [<a href="#ref4">2</a>] or the RESIST project [<a href="#ref5">3</a>] among others, aiming at identifying, characterizing and understanding the source mechanisms driving volcanic eruptions, in order to potentially contribute to early eruption warning. Indeed, in order to improve the analysis and the results, methods and objectives might be adapted depending on the results of the two main projects mentioned.</p>
 
 <p>Points of contact:<br/>
-- Fulgencio Sanmartín, <a href="mailto:fulgencio.sanmartin@gmail.com">fulgencio.sanmartin@gmail.com</a>, student at Lund University and author of wisdom-volkano;<br/>
-- Nicolas D’Oreye, <a href="mailto:ndo@ecgs.lu">ndo@ecgs.lu</a>, researcher at ECGS.</p>
+- Fulgencio Sanmartín, <code><small>fulgencio.sanmartin [at] gmail [dot] com</small></code>, student at Lund University and author of wisdom-volkano;<br/>
+- Nicolas D’Oreye, <code><small>ndo [at] ecgs [dot] lu</small></code>, researcher at ECGS.</p>
 
 
 <?php 
@@ -38,6 +43,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 ?>
 <h2 id="admin">Administration</h2>
 <p>Only (logged in) administrators can read this.</p>
+
+<h3 id="admin-install">Installation</h3>
+<p>Information about the complete installation is given in the software architecture document delivered with the program.</p>
 
 <h3 id="admin-users-geo">Users - Geoserver</h3>
 <p>Only one user is needed for wisdom-volkano, with administrator privileges. However, it is recommended not to use the built-in <code>admin</code> user, whose default password prevents the REST interface to be accessed for security reasons.</p>
@@ -48,7 +56,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 <p>The user will be created at installation and is configured in the config file <code>application/config/database.php</code>.</p>
 
 <h3 id="admin-users-ci">Users - wisdom-volkano</h3>
-<p>After logging in, only administrators will be able to see the Admin option in the menu. This option leads to five different options divided in two groups: users and layers (covered <a href="#admin-layers-ci">below</a>). The main submenu for the latter is User list.</p>
+<p>After logging in, only administrators will be able to see the administrative parts of the menu. This option leads to five different submenus divided in two groups: users and layers (covered <a href="#admin-layers-ci">below</a>). The main submenu for the latter is User list.</p>
 <p>The user list will show all users created within the wisdom-volkano. Here there are a number of options available:</p>
 <ul>
   <li>Create a new user (also from the menu)</li>
@@ -104,8 +112,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
   <li><abbr title="Digital Elevation Model">dem</abbr></li>
   <li><abbr title="Unwrapped Interferogram">uint</abbr></li>
   <li>mask</li>
+  <li><abbr title="Feature">feat</abbr> or <abbr title="Geometry">geom</abbr> (or similar)</li>
 </ul>
-<p>Other workspaces will be added in future deliveries.</p>
+
 <p>The default workspace can be any of them. After the creation, editing a workspace will allow to add more data which are not relevant for this project.</p>
 <p>For further and updated information, please refer to the <a href="http://docs.geoserver.org/stable/en/user/webadmin/data/workspaces.html" title="GeoServer manual on Workspaces" target="_blank">GeoServer manual on Workspaces&nbsp;<span class="glyphicon glyphicon-new-window" aria-hidden="true"></span></a>.</p>
 
@@ -200,11 +209,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
   <li>folder_msbas_ras: the subfolder with the stack of raster files; default is <code>RASTERS</code>;</li>
   <li>folder_msbas_ts: the subfolder with the timeseries files; default is <code>Time_Series</code>;</li>
   <li>folder_histogram: same as folder_msbas but for the histogram files (no need of further folders here).</li>
+  <li>folder_gnss: same as folder_msbas but for the GNSS files (no need of further folders here).</li>
+  <li>folder_detrend: this is to be added to the folder_msbas or the folder_gnss above, please consider the slash bars and the system you are using.</li>  
 </ul>
 <p>When creating a timeseries, the first option is the type. Selecting one will display a different form:</p>
 <ul>
   <li>msbas</li>
-  <li>histogram</li>
+  <li>histogram (for seisms)</li>
+  <li>gnss</li>
 </ul>
 
 <h4>msbas timeseries</h4>
@@ -234,26 +246,43 @@ defined('BASEPATH') OR exit('No direct script access allowed');
   <li>Seismic station: name of the station. It must match the name in the background layer "Seismo stations".</li>
 </ul>
 
+<h4>GNSS timeseries</h4>
+<p>The fields for GNSS timeseries are:</p>
+<ul>
+  <li>Time series name: for giving a name. A short one is suggested, like the same acronym of the GNSS station. It is recommended to choose a different name than the histogram, when both time series are available in the same station.</li>
+  <li>Time series file or group folder: it lists the files available in the folder_gnss above from the configuration. Usually there will be one per station in TSV format.</li>
+  <li>GNSS station: name of the station. It must match the name in the background layer "GNSS  stations".</li>
+</ul>
+
+<h4>Events timeseries</h4>
+<p>A special type of timeseries, available by default in the MSBAS chart panel, is the events'. They are in the file <code>assets/data/events.js</code>, where they can be edited. Please keep the format and the chronology or nothing may be displayed: </p>
+<p>Example: <code>ar[ Date.UTC(YYYY, MM,  DD)  ] = "description";</code>, where the date (YYYY, MM, DD) and the description are to be added.</p>
+
+
+<h3 id="admin-audit">Audit log</h3>
+<p>All administrative actions are recorded in a text file called <code>application/logs/log-YYYY-MM-DD.php</code>, one generated for each day.</p>
+<p>Also, any errors will be logged there as well. The complete list of errors is in the software architecture document.</p>
+
 <?php
     } // end of admin 
 ?>
 
+
 <h2 id="map">Map screen</h2>
 <p>All users (logged in) can read this.</p>
 
-<h3 id="login">Login/logout</h3>
-<p>In order to use wisdom-volkano, you need to have a proper user and password provided by an administrator. Please do not try to break in without permission. If you know of any improper use, please let administrators know.</p>
-<p>Once logged in, you will be directed to the <a href="#map-panel" title="map panel">map panel</a> by default. The session will continue to work while you keep doing actions (like clicking on points or loading new layers). </p>
-<p>However, it will last around 30' (thirty minutes) if you do no interactions (like reading this help). In that case, you may be redirected to the login again - and lose any non saved work.</p>
-<p>When you are done, be sure to log out by clicking the option in the top menu. That way, you will avoid any security problems (like a hacker stealing your session).</p>
-
 <h3 id="map-panel">Map panel</h3>
 <p>In the home screen, the main component and biggest panel is the map, where the layers are shown. Any configuration applied in the <a href="layers" title="Layers panel">layers panel</a> will be shown here.</p>
+<p>On top of the map there is an input control which allows entering coordinates by hand instead of clicking in a point (see below). The effect is the same.</p>
+<p><img src="<?php echo base_url('assets/img/input_coord.gif');?>" alt="Input coordinates capture" style="border: solid 1px black;"/></p>
+
 <p>Within the map there are three main controls:</p>
 <ul>
   <li>Zoom: either clicking on the +/- buttons, or with the scroll button on your keyboard or mouse (wheel), you may zoom in and out in the map. The scale at the bottom left will be updated depending on the zoom.</li> 
   <li>Pan: you may click with the mouse, hold the click and drag around to pan. North is up.</li>
-  <li>Click: when clicking and not holding with the mouse, a small announcement with the available timeseries. Any timeseries clicked will be loaded and shown in the <a href="chart" title="Chart panel">Chart panel</a>.</li>
+  <li>Click: when clicking and not holding with the mouse, a small announcement with the available timeseries or seism location information if available and shown: <br/>
+  <img src="<?php echo base_url('assets/img/click_map.png');?>" alt="Click on the map example" style="border: solid 1px black;"/><br/>
+  Any timeseries clicked will be loaded and shown in the <a href="chart" title="Chart panel">Chart panel</a>. </li>
 </ul>
 <p>By default, when entering the system for the first time and no <a href="layers" title="Layers panel">layers</a> are added yet, wisdom-volkano is configured by default with some backgrounds, visible by default:</p>
 <ul>
@@ -280,11 +309,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <li>The opacity, from completely transparent to completely opaque.</li>
 </ul>
 
-<h3 id="config">Config panel</h3>
-<p>Iteration 3.</p>
-
 <h3 id="chart">Chart panel</h3>
-<p>By default, when entering the system there will be no timeseries loaded and this panel will be empty. When clicking on the map, wisdom-volkano will show the adequate timeseries: coordinates and configured msbas timeseries, or seismic stations. For msbas, if the timeseries file corresponding to the clicked point does not exist, it will be calculated and the file placed in the same folder. </p>
+<p>By default, when entering the system there will be no timeseries loaded and one time series panel will be available with events information.</p>
+
+When clicking on the map, wisdom-volkano will show the adequate timeseries: coordinates and configured msbas timeseries, or seismic stations. For msbas, if the timeseries file corresponding to the clicked point does not exist, it will be calculated and the file placed in the same folder. </p>
 <p class="alert alert-warning">Warning: selecting a new type of timeseries will cause the previous one to be lost. For example, if three msbas points are shown and then a histogram timeseries is clicked on a seismic station, the msbas visualization will be lost (though not the files generated).</p>
 
 <h4>Functionalities in the Chart panel:</h4>
@@ -296,15 +324,43 @@ defined('BASEPATH') OR exit('No direct script access allowed');
   <li>Handle button (left of the title, square with three lines): see below.</li>
 </ul>
 <p class="alert alert-info">Hint: sometimes the tooltip can hide the legend or even the handle button. To avoid it, try moving the mouse to a side and then "enter" the chart from above (i.e., moving it vertically from the map to the chart).</p>
+<p>Below the first Chart panel there is a button called "Reset all time series". It allows to remove all time series at once from the charts to start fresh.</p>
 
 <h4>The chart handle</h4>
 The chart handle has the following options when clicked:</p>
 <ul>
-  <li>manage timeseries: the list of the timeseries loaded will be shown, similar to the legend. Points can be removed unchecking the box, and reordered by drag and drop. To show the changes, click on Reload chart.</li>
+  <li>manage timeseries (only MSBAS): the list of the timeseries loaded will be shown, similar to the legend. Points can be removed unchecking the box, and reordered by drag and drop. To show the changes, click on Reload chart. Also, the checked timeseries may be added to favorites.</li>
+  <li>remove timeseries (only seism histograms and GNSS): exactly that, it removes the timeseries.</li>
+  <li>detrend timeseries (only MSBAS and GNSS): the list of timeseries loaded will be shown, similar to the legend. A single one can be removed the trend calculated in the zoomed chart. The screen will reload and the timeseries will be noted as detrended.</li>
   <li>export to PNG: the current image of the chart can be exported to PNG format.</li>
 </ul>
 
-<p class="alert alert-warning">Please note that the configuration of timeseries and layers is not (yet) saved when logging out. It will be done in iteration 3.</p>
+<h2 id="admin-all">Administration for all users</h2>
+<p>All users (logged in) can read this.</p>
+
+<h3 id="fav">MSBAS favorites</h3>
+<p>The list of favorited points will be shown here, with the possibilities of:</p>
+<ul>
+  <li>Edit point: to add a description or correct the coordinate.</li>
+  <li>Delete point: to delete the point from favorites.</li>
+  <li>Create favorite point: same as in the MSBAS chart, but here the points can be added manually.</li>
+  <li>Load into current session: loads the point timeseries to the MSBAS chart.</li>
+  <li>Load all points into current session: allows to add all points listed to the MSBAS chart in one go.</li>
+</ul>
+
+<h3 id="detrend">Detrended</h3>
+<p>The only way to detrend a timeseries, being dependent on the zoom, is on the charts directly. That is why the only option here is to remove a detrended timeseries: this action will reload the original, trended timesereis again.</p>
+
+<h3 id="help">Help</h3>
+<p>Shows this help.</p>
+
+<h3 id="login">Login/logout</h3>
+<p>In order to use wisdom-volkano, you need to have a proper user and password provided by an administrator. Please do not try to break in without permission. If you know of any improper use, please let administrators know.</p>
+<p>Once logged in, you will be directed to the <a href="#map-panel" title="map panel">map panel</a> by default. The session will continue to work while you keep doing actions (like clicking on points or loading new layers). </p>
+<p>However, it will last around 30' (thirty minutes) if you do no interactions (like reading this help). In that case, you may be redirected to the login again - and lose any non saved work.</p>
+<p>When you are done, be sure to log out by clicking the option in the top menu. That way, you will avoid any security problems (like a hacker stealing your session).</p>
+<p>All configuration on the map position and zoom, the layers and the timeseries is saved and kept, either if changing to the help or admin, or if logging out.</p>
+
 
 <h2 id="ref">References</h2>
 
@@ -318,67 +374,11 @@ The chart handle has the following options when clicked:</p>
           </div>
 
 
-        <div class="col-lg-3" role="complementary">
-          <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm">
-            <ul class="nav bs-docs-sidenav">
-
-<li><a href="#help">Help</a></li>
-
-<?php 
-    if( $this->ion_auth->is_admin() ) 
-    { 
-?>
-<li>
-  <a href="#admin">Administration</a>
-  <ul class="nav">
-    <li><a href="#admin-users-geo">Users Geoserver</a></li>
-    <li><a href="#admin-users-pg">Users PostgreSQL</a></li>
-    <li><a href="#admin-users-ci">Users wisdom-volkano</a></li>
-    <li><a href="#admin-layers-geo">Layers Geoserver</a></li>
-    <li><a href="#admin-layers-ci">Layers wisdom-volkano</a></li>
-    <li><a href="#admin-ts-ci">Timeseries</a></li>
-  </ul>
-</li>
-<?php
-    } // end of admin 
-?>
-
-<li>
-  <a href="#map">Map screen</a>
-  <ul class="nav">
-    <li><a href="#login">Login/logout</a></li>
-    <li><a href="#map-panel">Map panel</a></li>
-    <li><a href="#layers">Layers panel</a></li>
-    <li><a href="#manage-layers">Manage layers</a></li>
-    <li><a href="#visib-layers">Layers visibility</a></li>
-    <li><a href="#config">Config panel</a></li>
-    <li><a href="#chart">Chart panel</a></li>
-  </ul>
-</li>
-<li>
-  <a href="#ref">References</a>
-  <ul class="nav">
-    <li><a href="#ref1">Smets et al., 2013</a></li>
-    <li><a href="#ref4">GeoRisCa</a></li>
-    <li><a href="#ref5">R. Museum Central Africa</a></li>
-  </ul>
-</li>
-
-            </ul>
-            <a class="back-to-top" href="#top">
-              Back to top
-            </a>
-          </nav>
+        <div class="col-xs-3" role="complementary">
+          <nav id="toc" data-toggle="toc"></nav>
         </div>
-          
-      </div>
   </div>
 
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="<?php echo base_url('assets/js/jquery-2.1.4.min.js');?>"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="<?php echo base_url('assets/js/bootstrap.min.js');?>"></script>
-    <script src="<?php echo base_url('assets/js/docs.min.js');?>"></script>
 
 </body>
 </html>

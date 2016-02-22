@@ -1,5 +1,14 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
+/**
+ * Layer Controller
+ *
+ * @package		CodeIgniter
+ * @subpackage	Controllers
+ * @version	  1.0
+ * @author		Fulgencio Sanmartín
+ * @link		email@fulgenciosanmartin.com
+*/
 class Layer extends CI_Controller {
 	var $layer_name = "";
   var $layer_types = "raster,dem,feat-point,feat-line,feat-poly"; // to be used for populating and validation 
@@ -16,9 +25,9 @@ class Layer extends CI_Controller {
 	 * Index Page for this controller.
 	 *
 	 * Maps to the following URL
-	 * 		http://example.com/index.php/descarga
+	 * 		http://example.com/index.php/layer
 	 *	- or -
-	 * 		http://example.com/index.php/descarga/index
+	 * 		http://example.com/index.php/layer/index
 	 * 
 	 * Controller to be used internally, for handling layers.
 	 *
@@ -94,6 +103,8 @@ class Layer extends CI_Controller {
         $layer_name = $this->input->post( 'layer_name' );
         $layer_type = $this->input->post( 'layer_type' );
         $layer_description = $this->input->post( 'layer_description' );
+
+        log_message( 'info', '[WISDOM-Volkano] Layer ' . $layer_name . ' created by ' . $this->session->userdata( 'email' ) );
         
         $this->layer->set_layer_new( $layer_name, $layer_type, $layer_description );
         
@@ -101,7 +112,10 @@ class Layer extends CI_Controller {
         //var_dump( $this->input );
         if( $this->input->post( 'grant' ) ) 
           foreach( $this->input->post( 'grant' ) as $user_email )
+          {
+            log_message( 'info', '[WISDOM-Volkano] Layer ' . $layer_name . ' granted to ' . $user_email . ' by ' . $this->session->userdata( 'email' ) );
             $this->userlayer->set_userlayer_new( $user_email, $layer_name );
+          }
         // by default, the admin grants herself the layer 
         $this->userlayer->set_userlayer_new( $this->session->userdata( 'email' ), $layer_name );
         
@@ -183,6 +197,8 @@ class Layer extends CI_Controller {
         $layer_type = $this->input->post( 'layer_type' );
         $layer_description = $this->input->post( 'layer_description' );
         
+        log_message( 'info', '[WISDOM-Volkano] Layer ' . $layer_name . ' updated by ' . $this->session->userdata( 'email' ) );
+        
         $this->layer->set_layer_edit( $layer_name, $layer_type, $layer_description );
 
         // remove all grants for that layer
@@ -191,7 +207,11 @@ class Layer extends CI_Controller {
         // get all users to grant the layer
         if( $this->input->post( 'grant' ) ) 
           foreach( $this->input->post( 'grant' ) as $user_email )
+          {
+            log_message( 'info', '[WISDOM-Volkano] Layer ' . $layer_name . ' granted to ' . $user_email . ' by ' . $this->session->userdata( 'email' ) );
+          
             $this->userlayer->set_userlayer_new( $user_email, $layer_name );
+          }
         // by default, the admin grants herself the layer 
         $this->userlayer->set_userlayer_new( $this->session->userdata( 'email' ), $layer_name );
         
@@ -278,6 +298,8 @@ class Layer extends CI_Controller {
 		}
 		else
 		{
+      log_message( 'info', '[WISDOM-Volkano] Layer ' . $layer . ' removed by ' . $this->session->userdata( 'email' ) );
+    
       $this->load->model( 'layer_model', 'layer' );
       $this->layer->del_layer( $layer );
       redirect( site_url() . '/layer', 'refresh' );
@@ -307,7 +329,7 @@ class Layer extends CI_Controller {
 		{
       $layers = $this->input->post( 'grant' );
       $this->load->model( 'userlayer_model', 'userlayer' );
-      // TBD: all layers unloaded; only the checked below are loaded
+
       $this->userlayer->unload_layers( $this->session->userdata( 'email' ) );
       if( is_array( $layers ) )
       {
@@ -348,7 +370,7 @@ class Layer extends CI_Controller {
     // only if we are coming from the map (home) and there is at least 1 layer
 		else
     {
-      $count = count( $this->input->post( 'visible' ) ); // TBD: ensure that returns 1 if it is not an array, just one
+      $count = count( $this->input->post( 'visible' ) ); 
       if( $count > 0 )
       {
         $visible = $this->input->post( 'visible' );

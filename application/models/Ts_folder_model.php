@@ -129,6 +129,32 @@ class Ts_folder_model extends CI_Model
   }
   /* end of function date2tick */
   
+	/**
+	 * get_ts_file_name Constructs the file name with the ts default + col,row
+	 *
+   * @access	public
+   * @param   the coordinates and the ts, and if it shall return uri or disk link
+   * @return	the file name
+	 */
+  public function get_ts_file_name( $msbas, $type, $xcol, $yrow )
+  {
+    if( $type == "uri" )
+      $file = base_url( "assets/data/msbas/" ) . "/" 
+            . trim( $msbas->ts_file ) 
+            . $this->config->item( 'uri_msbas_ts' ) 
+            . substr( trim( $msbas->ts_file_ts ), 0, $msbas->ts_file_ts_ini_coord );    
+    else // "disk" 
+      $file = $this->config->item( 'folder_msbas' )
+            . trim( $msbas->ts_file ) 
+            . $this->config->item( 'folder_msbas_ts' ) 
+            . substr( trim( $msbas->ts_file_ts ), 0, $msbas->ts_file_ts_ini_coord );
+
+    // assuming pixels with 3 numbers, range 001..999, format XXX_YYY
+    $file = $file . $xcol . "_" . $yrow;
+    $file = $file . substr( trim( $msbas->ts_file_ts ), $msbas->ts_file_ts_ini_coord + 7 ); // until the end
+    // echo "looking for file $file \n";
+    return $file;
+  }
   
 }
 

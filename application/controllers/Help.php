@@ -1,6 +1,15 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Help Controller
+ *
+ * @package		CodeIgniter
+ * @subpackage	Controllers
+ * @version	  1.0
+ * @author		Fulgencio Sanmartín
+ * @link		email@fulgenciosanmartin.com
+*/
 class Help extends CI_Controller {
 
 	/**
@@ -32,3 +41,5 @@ class Help extends CI_Controller {
     
 	}
 }
+/* End of file Help.php */
+/* Location: ./application/controllers/Help.php */

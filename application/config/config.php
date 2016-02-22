@@ -3,41 +3,63 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 switch (ENVIRONMENT)
 {
-	case 'development':
-    // geoserver
-    $config['geoserver_rest']    = 'http://127.0.0.1:8080/geoserver/rest/workspaces/';
-    $config['geoserver_userpwd'] = 'user:password'; // TOBECOMPLETED
-    
-    // timeseries folders
-    $config['bar_slash']         = '\\';
-    $config['folder_msbas']      = 'local_folder'; // TOBECOMPLETED
-    $config['folder_msbas_ras']  = '\\RASTERS\\'; // example:  .../msbas/name_of_ts/RASTERS
-    $config['folder_msbas_ts']   = '\\Time_Series\\'; // example:  .../msbas/name_of_ts/Time_Series
-    $config['uri_msbas_ras']  = '/RASTERS/'; // example:  .../msbas/name_of_ts/RASTERS
-    $config['uri_msbas_ts']   = '/Time_Series/';  // example:  .../msbas/name_of_ts/Time_Series
-    $config['folder_histogram']  = 'other_local_folder'; // TOBECOMPLETED
-    break;
 	case 'testing':
-	case 'production':
     // geoserver
     $config['geoserver_rest']    = 'http://127.0.0.1:8080/geoserver/rest/workspaces/';
-    $config['geoserver_userpwd'] = 'user:password'; // TOBECOMPLETED
+    $config['geoserver_userpwd'] = 'user:pwd';
     
     // timeseries folders
     $config['bar_slash']         = '/';
-    $config['folder_msbas']      = 'local_folder'; // TOBECOMPLETED
+    $config['folder_msbas']      = '/home/user/wisdom-volkano/assets/data/msbas/'; 
     $config['folder_msbas_ras']  = '/RASTERS/'; // example:  .../msbas/name_of_ts/RASTERS
     $config['folder_msbas_ts']   = '/Time_Series/';  // example:  .../msbas/name_of_ts/Time_Series
-    $config['uri_msbas_ras']  = '/RASTERS/'; // example:  .../msbas/name_of_ts/RASTERS
-    $config['uri_msbas_ts']   = '/Time_Series/';  // example:  .../msbas/name_of_ts/Time_Series
-    $config['folder_histogram']  = 'other_local_folder'; // TOBECOMPLETED
+    $config['folder_histogram']  = '/home/user/wisdom-volkano/assets/data/seism-count/'; 
+    $config['folder_gnss']       = '/home/user/wisdom-volkano/assets/data/gnss-ts/'; 
+    $config['folder_detrend']    = 'detrend/'; // added to folder msbas or gnss
+
+    // sessions folder
+    $config['sess_save_path'] = '/home/user/wisdom-volkano/ci_sessions/';
+    
+    break;
+  
+	case 'production':
+    // geoserver
+    $config['geoserver_rest']    = 'http://127.0.0.1:8080/geoserver/rest/workspaces/';
+    $config['geoserver_userpwd'] = 'user:pwd';
+    
+    // timeseries folders
+    $config['bar_slash']         = '/';
+    $config['folder_msbas']      = '/home/user/wisdom-volkano/assets/data/msbas/'; 
+    $config['folder_msbas_ras']  = '/RASTERS/'; // example:  .../msbas/name_of_ts/RASTERS
+    $config['folder_msbas_ts']   = '/Time_Series/';  // example:  .../msbas/name_of_ts/Time_Series
+    $config['folder_histogram']  = '/home/user/wisdom-volkano/assets/data/seism-count/'; 
+    $config['folder_gnss']       = '/home/user/wisdom-volkano/assets/data/gnss-ts/'; 
+    $config['folder_detrend']    = 'detrend/'; // added to folder msbas or gnss
+    
+    // sessions folder
+    $config['sess_save_path'] = '/home/user/wisdom-volkano/ci_sessions/';
+    
     break;
 }
 
- 
+$config['uri_msbas_ras']  = '/RASTERS/'; // example:  .../msbas/name_of_ts/RASTERS
+$config['uri_msbas_ts']   = '/Time_Series/';  // example:  .../msbas/name_of_ts/Time_Series
+$config['uri_histogram']  = '/assets/data/seism-count/'; 
+$config['uri_gnss']       = '/assets/data/gnss-ts/'; 
+$config['uri_detrend']    = 'detrend/'; // added to folder msbas or gnss
+$config['uri_slash']      = '/';
+
+
+$config[ 'default_zoom' ] = 10;
+// in EPSG:4326   [   29.1,   -1.5]
+// in EPSG:900913 [3248420,-183143] (gmaps) 
+$config[ 'default_lon' ] = 3248420;
+$config[ 'default_lat' ] = -183143;
 $serv = "http://" . $_SERVER[ 'SERVER_NAME' ] . ":8080/geoserver/";
 $config['geoserver_url'] = $serv;
-$config['gmaps_key'] = "Google Maps API key"; // TOBECOMPLETED 
+$config['gmaps_key'] = "Please get your key from Google"; 
+// Use your own, instructions in https://developers.google.com/maps/documentation/javascript/
+
 
 
 /*
@@ -56,7 +78,7 @@ $config['gmaps_key'] = "Google Maps API key"; // TOBECOMPLETED
 | environments.
 |
 */
-$config['base_url'] = '';
+$config['base_url'] = 'http://127.0.0.1:8082/'; // to be adapted
 
 /*
 |--------------------------------------------------------------------------
@@ -250,7 +272,7 @@ $config['directory_trigger'] = 'd';
 | your log files will fill up very fast.
 |
 */
-$config['log_threshold'] = 1;
+$config['log_threshold'] = 4;
 
 /*
 |--------------------------------------------------------------------------
@@ -395,9 +417,8 @@ $config['encryption_key'] = '';
 |
 */
 $config['sess_driver'] = 'files';
-$config['sess_cookie_name'] = 'ci_session';
+$config['sess_cookie_name'] = 'ci_session_cookie';
 $config['sess_expiration'] = 7200;
-$config['sess_save_path'] = NULL;
 $config['sess_match_ip'] = FALSE;
 $config['sess_time_to_update'] = 300;
 $config['sess_regenerate_destroy'] = FALSE;
@@ -435,7 +456,7 @@ $config['cookie_httponly'] 	= FALSE;
 | (usually \n) and Windows (\r\n).
 |
 */
-$config['standardize_newlines'] = FALSE;
+$config['standardize_newlines'] = TRUE;
 
 /*
 |--------------------------------------------------------------------------

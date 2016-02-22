@@ -35,14 +35,14 @@ if ( ! function_exists('menu'))
 
     $CI =& get_instance();
 
+    if( $pagina_actual == 'admin' )
+      $ret .= "<li role='presentation' class='active dropdown'>";
+    else 
+      $ret .= "<li role='presentation' class='dropdown'>";
+    $ret .= "<a class='dropdown-toggle' data-toggle='dropdown' href='#' role='button' aria-expanded='false' title='Admin'>Admin <span class='caret'></span></a>\n";
+    $ret .= "<ul class='dropdown-menu' role='menu'>\n";
     if( $CI->ion_auth->is_admin() ) 
     {
-      if( $pagina_actual == 'admin' )
-        $ret .= "<li role='presentation' class='active dropdown'>";
-      else 
-        $ret .= "<li role='presentation' class='dropdown'>";
-      $ret .= "<a class='dropdown-toggle' data-toggle='dropdown' href='#' role='button' aria-expanded='false' title='Admin'>Admin <span class='caret'></span></a>\n";
-      $ret .= "<ul class='dropdown-menu' role='menu'>\n";
       $ret .= "  <li role='presentation'><a role='menuitem' tabindex='-1' href='" . site_url( '/auth' ) . "'>User list</a></li>\n";
       $ret .= "  <li role='presentation'><a role='menuitem' tabindex='-1' href='" . site_url( '/auth/create_user' ) . "'>Create user</a></li>\n";
       $ret .= "  <li role='presentation'><a role='menuitem' tabindex='-1' href='" . site_url( '/auth/create_group' ) . "'>Create group</a></li>\n";
@@ -57,8 +57,11 @@ if ( ! function_exists('menu'))
       $ret .= "  <li role='presentation'><a role='menuitem' tabindex='-1' href='" . site_url( '/timeseries' ) . "'>Time series list</a></li>\n";
       $ret .= "  <li role='presentation'><a role='menuitem' tabindex='-1' href='" . site_url( '/timeseries/create_ts' ) . "'>Create time series</a></li>\n";
       
-      $ret .= "</ul></li>\n";
+      $ret .= "<li role='presentation' class='divider'></li>\n";
     }
+    $ret .= "  <li role='presentation'><a role='menuitem' tabindex='-1' href='" . site_url( '/favorite' ) . "'>MSBAS favorites</a></li>\n";
+    $ret .= "  <li role='presentation'><a role='menuitem' tabindex='-1' href='" . site_url( '/detrend/list_ts' ) . "'>Detrended timeseries</a></li>\n";
+    $ret .= "</ul></li>\n";
 
 		if( $pagina_actual == 'Help' )
       $ret .= '<li role="presentation" class="active"><a href="' . site_url( 'help' ) . '" title="Help">Help</a></li>' . "\n";

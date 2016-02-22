@@ -66,10 +66,13 @@ class Auth extends CI_Controller {
 				//if the login is successful
 				//redirect them back to the home page
 				$this->session->set_flashdata('message', $this->ion_auth->messages());
+        log_message( 'info', '[WISDOM-Volkano] Login successful of ' . $this->input->post('identity') );
 				redirect('/', 'refresh');
 			}
 			else
 			{
+        log_message( 'info', '[WISDOM-Volkano] Login unsuccessful of ' . $this->input->post('identity') . ' because: ' . $this->ion_auth->errors() );
+        
 				//if the login was un-successful
 				//redirect them back to the login page
 				$this->session->set_flashdata('message', $this->ion_auth->errors());
@@ -99,11 +102,9 @@ class Auth extends CI_Controller {
 	//log the user out
 	function logout()
 	{
-    //save the user config: layers visible, opacity, order; zoom and position?
-    //$this->load->model( 'Userlayer_model', 'Userlayer' );
-    // TBD: la única manera de recibir $ar_layers es con un form-submit, no un enlace! Botón a posta?
-    // $this->Userlayer->set_userlayers_config( $this->session->userdata( 'email' ), $ar_layers );
-    
+		$user = $this->session->userdata('identity');
+    log_message( 'info', '[WISDOM-Volkano] Logout successful of ' . $user );
+
 		//log the user out
 		$logout = $this->ion_auth->logout();
 
@@ -357,6 +358,7 @@ class Auth extends CI_Controller {
 		{
 			$activation = $this->ion_auth->activate($id);
 		}
+    log_message( 'info', '[WISDOM-Volkano] User ' . $this->ion_auth->user($id)->row()->email . ' enabled by ' . $this->session->userdata('identity') . '.' );
 
 		if ($activation)
 		{
@@ -409,6 +411,8 @@ class Auth extends CI_Controller {
 				// do we have the right userlevel?
 				if ($this->ion_auth->logged_in() && $this->ion_auth->is_admin())
 				{
+          log_message( 'info', '[WISDOM-Volkano] User ' . $this->ion_auth->user($id)->row()->email . ' disabled by ' . $this->session->userdata('identity') . '.' );
+        
 					$this->ion_auth->deactivate($id);
 				}
 			}
@@ -454,6 +458,8 @@ class Auth extends CI_Controller {
 		}
 		if ($this->form_validation->run() == true && $this->ion_auth->register($username, $password, $email, $additional_data))
 		{
+      log_message( 'info', '[WISDOM-Volkano] User ' . $username . ' (' . $email . ') created by ' . $this->session->userdata('identity') . '.' );
+    
 			//check to see if we are creating the user
 			//redirect them back to the admin page
 			$this->session->set_flashdata('message', $this->ion_auth->messages());
@@ -549,6 +555,8 @@ class Auth extends CI_Controller {
 
 			if ($this->form_validation->run() === TRUE)
 			{
+        log_message( 'info', '[WISDOM-Volkano] User ' . $user->email . ' updated by ' . $this->session->userdata('identity') . '.' );
+      
 				$data = array(
 					'first_name' => $this->input->post('first_name'),
 					'last_name'  => $this->input->post('last_name'),
@@ -680,6 +688,8 @@ class Auth extends CI_Controller {
 			$new_group_id = $this->ion_auth->create_group($this->input->post('group_name'), $this->input->post('group_description'));
 			if($new_group_id)
 			{
+        log_message( 'info', '[WISDOM-Volkano] New group ' . $this->input->post('group_name') . ' created by ' . $this->session->userdata('identity') . '.' );
+      
 				// check to see if we are creating the group
 				// redirect them back to the admin page
 				$this->session->set_flashdata('message', $this->ion_auth->messages());
@@ -733,6 +743,8 @@ class Auth extends CI_Controller {
 		{
 			if ($this->form_validation->run() === TRUE)
 			{
+        log_message( 'info', '[WISDOM-Volkano] Group ' . $this->input->post('group_name') . ' updated by ' . $this->session->userdata('identity') . '.' );
+      
 				$group_update = $this->ion_auth->update_group($id, $_POST['group_name'], $_POST['group_description']);
 
 				if($group_update)
