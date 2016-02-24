@@ -20,32 +20,32 @@ Changelog and New Features
 **************************
 
 Third iteration (February 2016):
-- GNSS time series
-- seismic location map
-- fr5 and fr3.2: save to and load from timeseries favorites
-- fr3.3: input coordinates manually to calculate and load timeseries of the point
-- preload a timeseries with relevant events
-- fr14: show one histogram and GNSS chart per station at the same time
-- fr11: persistent configuration, zoom, position, time series and layers view 
-- fre2: audit log
-- fr8: detrend time series
+* GNSS time series
+* seismic location map
+* fr5 and fr3.2: save to and load from timeseries favorites
+* fr3.3: input coordinates manually to calculate and load timeseries of the point
+* preload a timeseries with relevant events
+* fr14: show one histogram and GNSS chart per station at the same time
+* fr11: persistent configuration, zoom, position, time series and layers view 
+* fre2: audit log
+* fr8: detrend time series
 
 Second iteration (October 2015):
--  user manual update
--  fr3.1: click on a raster loads the time series of the pixel as chart with time as X-axis 
--  fr9: save time series pixel values
--  fr13: calculate timeseries from raster stack if it does not exist
--  fr14: calculate and load histogramme (seismic counting data)
--  google maps added as a background
--  layers of seismic and GNSS stations added as backgrounds
+* user manual update
+* fr3.1: click on a raster loads the time series of the pixel as chart with time as X-axis 
+* fr9: save time series pixel values
+* fr13: calculate timeseries from raster stack if it does not exist
+* fr14: calculate and load histogramme (seismic counting data)
+* google maps added as a background
+* layers of seismic and GNSS stations added as backgrounds
 
 First iteration (July 2015):
--  user manual
--  fr1: basic gis: zoom, pan, 2 external rasters (gmaps, osm), rasters and features
--  fr2: select pixel
--  fre1: data security: login, admin, layer-user
--  fr10: add layers 
--  fro1: portability vs update of the system 
+* user manual
+* fr1: basic gis: zoom, pan, 2 external rasters (gmaps, osm), rasters and features
+* fr2: select pixel
+* fre1: data security: login, admin, layer-user
+* fr10: add layers 
+* fro1: portability vs update of the system 
 
 
 *******************

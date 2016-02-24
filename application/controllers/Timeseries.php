@@ -1,14 +1,5 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-/**
- * Timeseries Controller
- *
- * @package		CodeIgniter
- * @subpackage	Controllers
- * @version	  1.0
- * @author		Fulgencio Sanmartín
- * @link		email@fulgenciosanmartin.com
-*/
 class Timeseries extends CI_Controller {
 	var $ts_name = "";
   var $ts_types = "msbas,histogram,gnss"; // models available; events is fixed as background
@@ -224,6 +215,7 @@ class Timeseries extends CI_Controller {
           else
           {
             $this->data[ 'ts_file_ts_ini_coord' ] = 'Error: regular expression ' . $regexp . ' not found in ' . $ts_file;
+            $this->data[ 'ts_file_ts_ex_coord' ] = '';
           }
           
           // and get all enabled users that can be granted the timeseries
@@ -358,7 +350,7 @@ class Timeseries extends CI_Controller {
    *
    * @access	public//ajax
    * @param   name of msbas folder 
-   * @return	[not return but echo] reads the two files and ECHOES its needed contents in json 
+   * @return	[not return but echo] reads the two files and ECHOES its needed contents in json TBD!!!
   */  
   public function load_msbas_files( $folder )
   {
@@ -443,7 +435,7 @@ class Timeseries extends CI_Controller {
 		{
       $ts = $this->input->post( 'grant' );
       $this->load->model( 'userts_model', 'userts' );
-
+      // TBD: all ts unloaded; only the checked below are loaded
       $this->userts->unload_ts( $this->session->userdata( 'email' ) );
       if( is_array( $ts ) )
       {

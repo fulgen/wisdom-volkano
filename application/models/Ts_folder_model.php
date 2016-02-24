@@ -51,7 +51,10 @@ class Ts_folder_model extends CI_Model
     $depth = 1;
     $where = $this->config->item( 'folder_msbas' ) . $folder . $this->config->item( 'folder_msbas_' . $type );
     $ar_map = directory_map( $where, $depth ); 
-    return $ar_map[ $ord ];
+    if( is_dir( $ar_map[ $ord ] ) ) // it is the detrend folder, skip to next
+      return $ar_map[ $ord + 1 ];
+    else 
+      return $ar_map[ $ord ];
   }
   /* end of get_filename_msbas */
 
@@ -150,6 +153,7 @@ class Ts_folder_model extends CI_Model
             . substr( trim( $msbas->ts_file_ts ), 0, $msbas->ts_file_ts_ini_coord );
 
     // assuming pixels with 3 numbers, range 001..999, format XXX_YYY
+    // TBD: use ts_folder->preg_pos regexp
     $file = $file . $xcol . "_" . $yrow;
     $file = $file . substr( trim( $msbas->ts_file_ts ), $msbas->ts_file_ts_ini_coord + 7 ); // until the end
     // echo "looking for file $file \n";
