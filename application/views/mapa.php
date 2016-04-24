@@ -12,7 +12,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
   
 <!-- openlayers and maps -->
   <script src="<?php echo base_url('assets/js/ol.js');?>" type="text/javascript"></script>
-  <script src="<?php echo base_url('assets/js/jquery-2.2.0.min.js');?>" type="text/javascript"></script>
+  <script src="<?php echo base_url('assets/js/jquery-2.2.2.min.js');?>" type="text/javascript"></script>
   <script type="text/javascript"
  src="http://maps.googleapis.com/maps/api/js?key=<?php echo $this->config->item( 'gmaps_key' ); ?>"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js/ol-source-gmaps-tms.min.js');?>"></script>  
@@ -23,6 +23,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
       lat  = <?php echo $_SESSION[ 'lat' ]; ?>; 
       lon  = <?php echo $_SESSION[ 'lon' ]; ?>; 
       center = [ lon, lat ]; 
+      // console.log( 'zoom set in view map to ' + zoom + ' and center set to [' + lon + ',' + lat + ']' );
     }
     var ts_msbas_num  = 0;
     var ts_seism_num  = 0;
@@ -51,6 +52,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         echo "ts_gnss_num   = " . $_SESSION[ 'ts_gnss_num' ] . ";\n";
       }
     ?>
+    // console.log( 'ini msbas ts (' + ts_msbas_num + '): ' + ts_msbas_data );
+    // console.log( 'ini histo ts (' + ts_seism_num + '): ' + ts_seism_data );
+    //console.log( 'ini gnss ts  (' + ts_gnss_num  + '): ' + ts_gnss_data  );
   </script>
   <script type="text/javascript" src="<?php echo base_url('assets/js/permalink.js');?>"></script>  
 
@@ -128,16 +132,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     <input id="visible1" class="visible" type="checkbox" <?php if( $layvis[0]->bg2_visible == 1 ) echo 'checked="checked"'; ?>/>&nbsp;bg:OpenStreetMaps
                     <input id="opac1" class="opacity" type="range" min="0" max="1" step="0.01" value="<?php echo ($layvis[0]->bg2_opacity / 100); ?>"/>
                   </fieldset>
-                  <fieldset id="layer2">
-                    <input id="visible2" class="visible" type="checkbox" <?php if( $layvis[0]->bg3_visible == 1 ) echo 'checked="checked"'; ?>/>&nbsp;bg:Seismo stations
-                    <input id="opac2" class="opacity" type="range" min="0" max="1" step="0.01" value="<?php echo ($layvis[0]->bg3_opacity / 100); ?>"/>
-                  </fieldset>
-                  <fieldset id="layer3">
-                    <input id="visible3" class="visible" type="checkbox" <?php if( $layvis[0]->bg4_visible == 1 ) echo 'checked="checked"'; ?>/>&nbsp;bg:GPS stations
-                    <input id="opac3" class="opacity" type="range" min="0" max="1" step="0.01" value="<?php echo ($layvis[0]->bg4_opacity / 100); ?>"/>
-                  </fieldset>
 <?php 
-    $i = 4; // counting from backgrounds on
+    $i = 2; // counting from backgrounds on
     $ws_current = ""; // one collapse panel per workspace
     if( is_array( $layers ) ) // substr( $layers, 0, 5 ) != "Error" )
     {
@@ -164,8 +160,30 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         $ws_current = $ws;
       }                
     }
-
+    echo "  </div>\n";
+    echo "</li>\n";
+    echo "<li class='list-group-item'>\n";
+    echo "  <a href='#stations' data-toggle='collapse'>stations >></a>\n";
+    echo "  <div id='stations' class='collapse'>\n";
+    
+    echo '<fieldset id="layer'.$i.'">';
+    echo '  <input id="visible'.$i.'" class="visible" type="checkbox"';
+    if( $layvis[0]->bg3_visible == 1 ) echo 'checked="checked"'; 
+    echo '/>&nbsp;stations:Seismo';
+    echo '  <input id="opac'.$i.'" class="opacity" type="range" min="0" max="1" step="0.01"';
+    echo '     value="' . ($layvis[0]->bg3_opacity / 100) . '"/>';
+    echo '</fieldset>';
+    $i ++;
+    echo '<fieldset id="layer'.$i.'">';
+    echo '  <input id="visible'.$i.'" class="visible" type="checkbox"';
+    if( $layvis[0]->bg4_visible == 1 ) echo 'checked="checked"'; 
+    echo '/>&nbsp;stations:GNSS';
+    echo '  <input id="opac'.$i.'" class="opacity" type="range" min="0" max="1" step="0.01"';
+    echo '     value="' . ($layvis[0]->bg4_opacity / 100) . '"/>';
+    echo '</fieldset>';
+    
 ?>
+
                 </div>
               </li>
             </ul>
@@ -306,7 +324,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 ?>          
 
           , new ol.layer.Image({
-            title: "gps",
+            title: "gnss",
             source: new ol.source.ImageWMS({ 
               url: '<?php echo $this->config->item( 'geoserver_url' ); ?>geom/wms',
               params: {
@@ -323,6 +341,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                       }
             })
           }) 
+
 
       ];
       var totLayers = listLayers.length;
@@ -379,6 +398,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
           scaleLineControl
         ])
       });
+      console.log( 'projection: ' + map.getView().getProjection().getCode() );
       
       <?php 
       /**
@@ -390,6 +410,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         var visibilityInput = $(layerid + ' input.visible');
         visibilityInput.on('change', function() { 
           layer.setVisible(this.checked); // true/false
+          // console.log( 'modifying layer... ' + id + ' visibility:' + this.checked );
           call_layer_visib_ajax( id, this.checked );
         });
         // opposite than the example: we get to the map the input value
@@ -400,6 +421,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         var opacityInput = $(layerid + ' input.opacity');
         opacityInput.on('ready mouseup', function() {
           layer.setOpacity( parseFloat(this.value) ); // 0..1, 2 decimals
+          // console.log( 'modifying layer... ' + id + ' opacity:' + this.value );
           call_layer_visib_ajax( id, this.value );
         });
         // opposite than the example: we get to the map the input value
@@ -423,28 +445,30 @@ defined('BASEPATH') OR exit('No direct script access allowed');
       /* Add a click handler to the map to render the popup. */
       map.on('singleclick', function(evt) {
         var pixel = evt.pixel;
-        var coordinate = evt.coordinate;
-        var coord4326 = ol.proj.transform( coordinate, 'EPSG:3857', 'EPSG:4326' );
-        select_point( coord4326 ); 
+        // var coordinate = evt.coordinate; 
+        // var coord4326 = ol.proj.transform( coordinate, 'EPSG:3857', 'EPSG:4326' );
+        select_point( evt.coordinate ); 
       }); 
       
       /* function to get coords manually set via input */
       $("#btn_addmarker").on("click", function () {
         var lat = parseFloat( $("#latitude").val() );
         var lon = parseFloat( $("#longitude").val() );
-        // lon,lat are already in EPSG:4326
-        select_point( [lon, lat] ); // ol.Coordinate{Array.<number>}
+        // lon,lat are already in EPSG:4326 // ol.Coordinate{Array.<number>}
+        var coord3857 = ol.proj.transform( [lon, lat], 'EPSG:4326', 'EPSG:3857' );
+        select_point( coord3857 ); 
       });
 
       /* function from a click or a manual input, opens pop-up on screen */
-      function select_point( coord4326 )
+      function select_point( coord3857 )
       { 
+        var coord4326 = ol.proj.transform( coord3857, 'EPSG:3857', 'EPSG:4326' );
         var view = map.getView();
         var viewResolution = view.getResolution();
         var sourceSeismSta = listLayers[ totLayers-1 ].getSource(); 
         var sourceGpsSta   = listLayers[ totLayers-2 ].getSource(); 
         var sourceSeismLoc = listLayers[ totLayers-3 ].getSource(); 
-        var coord3857 = ol.proj.transform( coord4326, 'EPSG:4326', 'EPSG:3857' );
+        // var coord3857 = ol.proj.transform( coord4326, 'EPSG:4326', 'EPSG:3857' );
         var urlGPSSta   = sourceGpsSta.getGetFeatureInfoUrl(
           coord3857, viewResolution, view.getProjection(),
           {'INFO_FORMAT': 'application/json', 'FEATURE_COUNT': 50});
@@ -457,9 +481,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
         var hdms = ol.coordinate.toStringXY( coord4326, 3 ); // with 3 decimal
         var html = '<code>' + hdms + '</code><p>Loading...</p>';
+        // console.log( 'point (' + coord4326 + ') ' + hdms );
         content.innerHTML =  html;
         overlay.setPosition(coord3857);
         
+        // console.log( 'arrTs: <?php echo json_encode( $ts ); ?>' );
         var arrTs = JSON.parse( '<?php echo json_encode( $ts ); ?>' );
         var html = '<code>' + hdms + '</code>';
         var htmlGNSS = ''; var htmlSeism = ''; var htmlMSBAS = '';
@@ -472,6 +498,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                   urlSeismLoc: urlSeismLoc
                 },
           success: function(result){ 
+            console.log( 'arrClick: ' + result );
             var arrClick = JSON.parse( result ); 
              
             var station = '';
@@ -480,6 +507,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
               station = arrTs[ i ][ 'ts_seism_station' ].trim(); 
               ts_name = arrTs[ i ][ 'ts_name' ];
               type = arrTs[ i ][ 'ts_type' ];
+              // console.log( i + '- type: ' + type + ' -- ts_name:' + ts_name + ' -- station:' + station );
 
               // 1. Seism station
               if( type == 'histogram' && arrClick['SeismSta'] == station ) 

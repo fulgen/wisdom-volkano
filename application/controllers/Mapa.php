@@ -1,15 +1,6 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-/**
- * Mapa Controller
- *
- * @package		CodeIgniter
- * @subpackage	Controllers
- * @version	  1.0
- * @author		Fulgencio Sanmartín
- * @link		email@fulgenciosanmartin.com
-*/
 class Mapa extends CI_Controller {
 
 	/**
@@ -78,6 +69,7 @@ class Mapa extends CI_Controller {
           $data[ 'left'  ] = $ts->ts_coord_lon_left;
           $data[ 'right' ] = $ts->ts_coord_lon_left 
               + $ts->ts_coord_lon_inc * $enviheader->get_value( "nCol" );
+          // TBD: negative!
           $data[ 'top'   ] = $ts->ts_coord_lat_top;
           $data[ 'down'  ] = $ts->ts_coord_lat_top 
               - $ts->ts_coord_lat_inc * $enviheader->get_value( "nRow" );
@@ -105,6 +97,7 @@ class Mapa extends CI_Controller {
       }
     }
     // 3.2 Load ts config 
+    // TBD only if (still) granted!
     if( ! isset( $_SESSION[ 'ts_msbas' ] ) )
     {
       $config = $this->status->get_ts_config();
@@ -151,6 +144,7 @@ class Mapa extends CI_Controller {
     }
     
     // 3.3 Load layer config
+    // TBD only if (still) granted!
     $res = $this->status->get_layer_visib();
     if( $res )
     {
@@ -349,6 +343,31 @@ class Mapa extends CI_Controller {
     echo "$(function () {                                          \n";
     echo "  var numCharts = Highcharts.charts.length; \n"; 
 
+/*    
+    echo 
+"  $('#chart0').bind('mousemove touchmove', function (e) { \n".
+"      var chart, point, i; \n".
+"      for( i = 1; i <= numCharts; i++ ) { \n".
+"          if( typeof Highcharts.charts[i] != 'undefined') \n" .
+"          { \n".
+//"             console.log( '' + i + '.- ' + Highcharts.charts[i] ); \n".
+"             chart = Highcharts.charts[i]; \n".
+"             e = chart.pointer.normalize(e);  \n".
+"             point = chart.series[0].searchPoint(e, true);  \n".
+"             if (point) { \n".
+"               point.onMouseOver(); \n".
+"               chart.tooltip.refresh(point); \n".
+"               chart.xAxis[0].drawCrosshair(e, point); \n".
+"             } \n".
+"          }\n".
+"      } \n".
+"  }); \n";
+    echo 
+"  Highcharts.Pointer.prototype.reset = function () { \n".
+"      return undefined; \n".
+"  };   \n"; 
+*/
+
     if( $totMsbas == 0 ) // back to empty chart, copy of ts-empty.js
     {
       echo 
@@ -403,13 +422,14 @@ class Mapa extends CI_Controller {
         // log_message( 'error', $i . ' - file ' . $file );
         
         echo "  var tsv" . $i . " = $.get( '" . $file . "' );        \n";
+        // echo "  console.log( 'finished loading $file ' ); ";
       }
       
       // wait for async calls to be finished
       for( $i = 0; $i < $totMsbas; $i ++ )
       {
         echo "  tsv" . $i . ".done( function( csv" . $i . " ) {        \n" .
-            "     if( csv" . $i . " == 'false' ) return 'Data not found';  \n" .
+            "     if( csv" . $i . " == 'false' ) return 'Data not found'; // TBD \n" .
             "     else {                                               \n";
       }
       
@@ -566,6 +586,7 @@ class Mapa extends CI_Controller {
         
         echo "  $.get('" . $this->config->item('uri_histogram') . $seism_file . "'," .
            "        function(csv) {                                \n";
+        // echo "  console.log( 'finished reading $seism_file ' ); ";
         // charts created in ts-empty.js
         echo "$('#chart" . $nth . "').highcharts({\n";
         echo
@@ -676,6 +697,7 @@ class Mapa extends CI_Controller {
      "              lon:  array2json( ts_msbas_lon ), " . 
      "              lat:  array2json( ts_msbas_lat ) }, " . 
      "      success: function(result){ " .
+//     "        console.log( 'session timeseries saved ' + result ); " .
      "      }, " .
      "      error: function( jqXHR, textStatus, errorThrown ) { " .
      "         console.log(JSON.stringify(jqXHR)); ".
@@ -729,6 +751,8 @@ class Mapa extends CI_Controller {
           $file = $this->detrend->get_detrend_filepath( "gnss", $obj->ts_name, "", 0, 0, 'detrend', 'uri' );
           // log_message( 'error', $i . ' - file ' . $file );
           $s .= "  var gnss" . $nth . " = $.get('" . $file . "' ); \n";
+          // $s .="   console.log( 'starting reading " . $file . "' ); \n";
+          
         }
         else
         {
@@ -738,19 +762,28 @@ class Mapa extends CI_Controller {
         $s .="gnss" . $nth . ".done( function( csv ) { \n".
              "  if( csv == 'false') return 'Data not found'; \n".
              "  else { \n" .
+             "    var prev = 0; \n ".
              "    lines = csv.split( '\\n' ); \n" .
              "    $.each(lines, function(lineNo, line) { \n" .
              "      if( line.length > 0 ) { \n";
              // ATT: date is separated with \\t from *the espaced values* 
         $s .="        items = line.split( '\\t' );  \n" .
              "        fecha = tick2Date( items[0] ); \n".
+             "        if( fecha <= prev ) console.log( 'err: ' + fecha + ' < ' + prev ); \n".
+             "        prev = fecha; \n ".
              "        val = items[1].split( ' ' );\n" .
-             "        dataEW.push([fecha,round_number(parseFloat(val[0])/10,2)]);\n".
-             "        dataNS.push([fecha,round_number(parseFloat(val[1])/10,2)]);\n".
-             "        dataUP.push([fecha,round_number(parseFloat(val[2])/10,2)]);\n".
+             "        dataEW.push([fecha,round_number(parseFloat(val[0]),2)/10]);\n". //mm > cm
+             "        dataNS.push([fecha,round_number(parseFloat(val[1]),2)/10]);\n".
+             "        dataUP.push([fecha,round_number(parseFloat(val[2]),2)/10]);\n".
              "      } //if \n" .
              "    }); //each \n";
        
+       /* debug
+        $s .="    console.log( 'finished reading " . $file . "' ); \n";
+        $s .="    console.log( 'dataEW: ' + dataEW ); \n";
+        $s .="    console.log( 'dataNS: ' + dataNS ); \n";
+        $s .="    console.log( 'dataUP: ' + dataUP ); \n";
+      */
         
         $s .="    $('#chart" . ( $nth + $totHisto ) . "').highcharts({\n" .
              "      chart: { type: 'line', zoomType: 'x' }, \n".
@@ -815,6 +848,7 @@ class Mapa extends CI_Controller {
      "              lon:  array2json( ts_msbas_lon ), \n" . 
      "              lat:  array2json( ts_msbas_lat ) }, \n" . 
      "      success: function(result){ \n" .
+     // "        console.log( 'session timeseries saved ' + result ); \n" .
      "      }, \n" .
      "      error: function( jqXHR, textStatus, errorThrown ) { \n" .
      "         console.log(JSON.stringify(jqXHR)); \n".

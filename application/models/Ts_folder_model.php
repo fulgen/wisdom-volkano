@@ -51,7 +51,7 @@ class Ts_folder_model extends CI_Model
     $depth = 1;
     $where = $this->config->item( 'folder_msbas' ) . $folder . $this->config->item( 'folder_msbas_' . $type );
     $ar_map = directory_map( $where, $depth ); 
-    if( is_dir( $ar_map[ $ord ] ) ) // it is the detrend folder, skip to next
+    if( is_dir( $where . $ar_map[ $ord ] ) ) // it is the detrend folder, skip to next
       return $ar_map[ $ord + 1 ];
     else 
       return $ar_map[ $ord ];
