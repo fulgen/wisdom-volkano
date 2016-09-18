@@ -166,6 +166,9 @@ class Detrend_model extends CI_Model
           fwrite( $nf, $line );
         }
         fclose( $nf );
+        
+        // To be able to remove it later
+        chmod( $nf, 0777 );
       }
     }
     else // $type == "gnss"
@@ -214,6 +217,9 @@ class Detrend_model extends CI_Model
         }
         fclose( $nf );
         fclose( $of );
+        // To be able to remove it later
+        chmod( $nf, 0777 );
+        
         
         if( ! $file_orig ) // detrend file already existed, swap
         {
@@ -363,6 +369,9 @@ class Detrend_model extends CI_Model
           
           // 6. close df, of and nf
           fclose( $nf ); fclose( $of ); fclose( $df );
+          
+          // To be able to remove it later
+          chmod( $nf, 0777 );
           
           // 7. remove df
           unlink( $detrended_file );

@@ -7,7 +7,7 @@
 * Author: Fulgencio Sanmartín
 *         email@fulgenciosanmartin.com
 *
-* Location: http://github.com/fulgen/wisdom-volkano/application/libraries/EnviHeader
+* Location: http://github.com/fulgen/EnviHeader
 *
 * Created:  2015.09.02
 *
@@ -31,25 +31,26 @@ class EnviHeader {
    **/
   public function __construct( $arFile ) {
     $fileName = $arFile[ 0 ];
+    
     $this->nCol = $this->nRow = $this->nBand = $this->dataType = $this->headerOffset = $this->byteOrder = 0;
     $this->interleave = "bsq"; 
     $this->mapLon = $this->mapLat = $this->mapLonInc = $this->mapLatInc = 0;
     $this->bin = null;
-    if( ! is_file( $fileName ) ) 
-    {
-      $err = 'Error: the Envi file ' . $fileName . ' could not be found.';
-      log_message( 'error', 'app/library/Enviheader/E-032 ' . $err );    
-      show_error( $err );
-      exit( -1 );
-    }
-    $this->headerFile = $fileName;
-    if( substr( $fileName, -4 ) != '.hdr' ) 
-    {
-      $err = 'Error: the Envi file found has not extension .hdr.';
-      log_message( 'error', 'app/library/Enviheader/E-031 ' . $err );    
-      show_error( $err );
-    }
+    $this->headerFile = substr( $fileName, 0, strlen( $fileName ) - 4 ) . '.hdr';
     $this->binaryFile = substr( $fileName, 0, strlen( $fileName ) - 4 ) . '.nvi';
+    if( ! ( is_file( $this->headerFile ) ) ) 
+    {
+      $err = 'Error: the Envi header file ' . $this->headerFile . ' could not be found.';
+      log_message( 'error', 'app/library/Enviheader/E-032 ' . $err );    
+      // show_error( $err );
+    }
+    if( ! ( is_file( $this->binaryFile ) ) ) 
+    {
+      $err = 'Error: the Envi binary file ' . $this->binaryFile . ' could not be found.';
+      log_message( 'error', 'app/library/Enviheader/E-031 ' . $err );    
+      // show_error( $err );
+    }
+    return;
   }
   /* end of __construct */
 
@@ -120,7 +121,8 @@ class EnviHeader {
     }
     if( $err )
     {
-      log_message( 'error', $err ); show_error( $err ); exit( -1 );
+      log_message( 'error', $err ); 
+      // show_error( $err ); 
     }
     
   }

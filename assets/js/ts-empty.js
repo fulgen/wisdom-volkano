@@ -104,7 +104,7 @@ function call_ts_ajax()
              lon:  array2json( ts_msbas_lon ),
              lat:  array2json( ts_msbas_lat ) },
      success: function(result){ 
-        // console.log( result ); // uncomment to debug the ts code
+        //console.log( result ); // uncomment to debug the ts code
         try {
             eval(result); 
         } catch (e) {

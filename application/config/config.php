@@ -3,6 +3,25 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 switch (ENVIRONMENT)
 {
+	case 'development':
+    // geoserver
+    $config['geoserver_rest']    = 'http://127.0.0.1:8080/geoserver/rest/workspaces/';
+    $config['geoserver_userpwd'] = 'user:pwd';
+    
+    // timeseries folders
+    $config['bar_slash']         = '\\';
+    $config['folder_msbas']      = 'd:\\Dropbox\\ecgs\\test\\assets\\data\\msbas\\'; 
+    $config['folder_msbas_ras']  = '\\RASTERS\\'; // example:  .../msbas/name_of_ts/RASTERS
+    $config['folder_msbas_ts']   = '\\Time_Series\\'; // example:  .../msbas/name_of_ts/Time_Series
+    $config['folder_histogram']  = 'd:\\Dropbox\\ecgs\\test\\assets\\data\\seism-count\\'; 
+    $config['folder_gnss']  = 'd:\\Dropbox\\ecgs\\test\\assets\\data\\gnss-ts\\'; 
+    $config['folder_detrend']    = 'detrend\\'; // added to folder msbas or gnss
+    
+    // sessions folder
+    $config['sess_save_path'] = 'd:\\Dropbox\\ecgs\\test\\ci_sessions\\';
+
+    break;
+    
 	case 'testing':
     // geoserver
     $config['geoserver_rest']    = 'http://127.0.0.1:8080/geoserver/rest/workspaces/';
@@ -10,15 +29,15 @@ switch (ENVIRONMENT)
     
     // timeseries folders
     $config['bar_slash']         = '/';
-    $config['folder_msbas']      = '/home/user/wisdom-volkano/assets/data/msbas/'; 
+    $config['folder_msbas']      = '/home/ubuntu/Dropbox/ecgs/test/assets/data/msbas/'; 
     $config['folder_msbas_ras']  = '/RASTERS/'; // example:  .../msbas/name_of_ts/RASTERS
     $config['folder_msbas_ts']   = '/Time_Series/';  // example:  .../msbas/name_of_ts/Time_Series
-    $config['folder_histogram']  = '/home/user/wisdom-volkano/assets/data/seism-count/'; 
-    $config['folder_gnss']       = '/home/user/wisdom-volkano/assets/data/gnss-ts/'; 
+    $config['folder_histogram']  = '/home/ubuntu/Dropbox/ecgs/test/assets/data/seism-count/'; 
+    $config['folder_gnss']       = '/home/ubuntu/Dropbox/ecgs/test/assets/data/gnss-ts/'; 
     $config['folder_detrend']    = 'detrend/'; // added to folder msbas or gnss
 
     // sessions folder
-    $config['sess_save_path'] = '/home/user/wisdom-volkano/ci_sessions/';
+    $config['sess_save_path'] = '/home/ubuntu/Dropbox/ecgs/test/ci_sessions/';
     
     break;
   
@@ -29,15 +48,15 @@ switch (ENVIRONMENT)
     
     // timeseries folders
     $config['bar_slash']         = '/';
-    $config['folder_msbas']      = '/home/user/wisdom-volkano/assets/data/msbas/'; 
+    $config['folder_msbas']      = '/home/ubuntu/Dropbox/ecgs/test/assets/data/msbas/'; 
     $config['folder_msbas_ras']  = '/RASTERS/'; // example:  .../msbas/name_of_ts/RASTERS
     $config['folder_msbas_ts']   = '/Time_Series/';  // example:  .../msbas/name_of_ts/Time_Series
-    $config['folder_histogram']  = '/home/user/wisdom-volkano/assets/data/seism-count/'; 
-    $config['folder_gnss']       = '/home/user/wisdom-volkano/assets/data/gnss-ts/'; 
+    $config['folder_histogram']  = '/home/ubuntu/Dropbox/ecgs/test/assets/data/seism-count/'; 
+    $config['folder_gnss']  = '/home/ubuntu/Dropbox/ecgs/test/assets/data/gnss-ts/'; 
     $config['folder_detrend']    = 'detrend/'; // added to folder msbas or gnss
     
     // sessions folder
-    $config['sess_save_path'] = '/home/user/wisdom-volkano/ci_sessions/';
+    $config['sess_save_path'] = '/home/ubuntu/Dropbox/ecgs/test/ci_sessions/';
     
     break;
 }
@@ -49,6 +68,15 @@ $config['uri_gnss']       = '/assets/data/gnss-ts/';
 $config['uri_detrend']    = 'detrend/'; // added to folder msbas or gnss
 $config['uri_slash']      = '/';
 
+// Following http://docs.geoserver.org/stable/en/user/rest/examples/curl.html
+// Examples: 
+//  http://127.0.0.1:8080/geoserver/rest/workspaces/dem/coveragestores/SRTM_Rift_28_31_0_3s_shaded35/coverages/SRTM_Rift_28_31_0_3s_shaded35.html
+//  http://127.0.0.1:8080/geoserver/rest/workspaces/geom/datastores/Seism_location/featuretypes/Seism_location.html
+$config['feat_v_rast_1']  = 'datastores'; 
+$config['feat_v_rast_2']  = 'featuretypes';
+$config['rast_v_feat_1']  = 'coveragestores'; 
+$config['rast_v_feat_2']  = 'coverages'; 
+
 
 $config[ 'default_zoom' ] = 10;
 // in EPSG:4326   [   29.1,   -1.5]
@@ -57,7 +85,7 @@ $config[ 'default_lon' ] = 3248420;
 $config[ 'default_lat' ] = -183143;
 $serv = "http://" . $_SERVER[ 'SERVER_NAME' ] . ":8080/geoserver/";
 $config['geoserver_url'] = $serv;
-$config['gmaps_key'] = "Please get your key from Google"; 
+$config['gmaps_key'] = "Please get your key from Google Maps"; 
 // Use your own, instructions in https://developers.google.com/maps/documentation/javascript/
 
 
@@ -78,7 +106,7 @@ $config['gmaps_key'] = "Please get your key from Google";
 | environments.
 |
 */
-$config['base_url'] = 'http://127.0.0.1:8082/'; // to be adapted
+$config['base_url'] = 'http://127.0.0.1:8085/'; // to be adapted
 
 /*
 |--------------------------------------------------------------------------

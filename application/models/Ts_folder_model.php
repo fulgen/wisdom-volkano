@@ -86,6 +86,14 @@ class Ts_folder_model extends CI_Model
   {
     // 1. open file to write
     $f = fopen( $file, "w" );
+    if( ! $f )
+    {
+      $err = 'app/model/ts_folder/E-096 Error: Cannot write a new timeseries file; is the folder writable?';
+      log_message( 'error', $err );
+      show_error( $err );
+      return false;
+    }
+    
     // 2. loop to write the data (length array) 
     $first = 0;
     foreach( $new_ts as $key => $value )
@@ -103,6 +111,9 @@ class Ts_folder_model extends CI_Model
     }    
     // 3. close file
     fclose( $f );
+    
+    // 4. To be able to remove it 
+    chmod( $f, 0777 );
   }
   /* end of function create_file_ts */
   

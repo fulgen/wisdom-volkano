@@ -30,6 +30,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 <tr>
                   <th>layer id</th>
                   <th>creator</th>
+                  <th><abbr title="active and accessible from GeoServer">ac</abbr></th>
                   <th>layer name</th>
                   <th>layer type</th>
                   <th>grants</th>
@@ -44,6 +45,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                   <tr>
                           <td><?php echo htmlspecialchars($layer->layer_id,ENT_QUOTES,'UTF-8');?></td>
                           <td><?php echo htmlspecialchars($layer->creator,ENT_QUOTES,'UTF-8');?></td>
+                          <?php if( $layer->ping === false ) 
+                                  echo '<td style="background-color: red">no</td>';
+                                else
+                                  echo '<td style="background-color: green">yes</td>';
+                          ?>
                           <td><?php echo htmlspecialchars($layer->layer_name_ws,ENT_QUOTES,'UTF-8');?></td>
                           <td><?php echo htmlspecialchars($layer->layer_type,ENT_QUOTES,'UTF-8');?></td>
                     <td>

@@ -44,6 +44,7 @@ class Geoserver_model extends CI_Model
   */
  	function get_workspaces()
   {
+    $debug = ''; // '2>&1'; // '';
     $curl_app = $this->get_curl_env();
     $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: text/xml" ' . $this->config->item( 'geoserver_rest' ) . '/workspaces/ ' . $debug; 
     //log_message('error', $curl_call );
@@ -51,8 +52,63 @@ class Geoserver_model extends CI_Model
     //log_message('error', $out );
     $xml = simplexml_load_string( $out );
     //log_message('error', $xml );
+    if( ( ! ( $xml instanceof SimpleXMLElement ) ) || empty( $xml ) )
+    {
+      log_message( 'error', 'app/model/geoserver/E-092 Error Cannot connect to GeoServer. Is it running?' );
+      return false;
+    }
     
     return $xml;
+  }
+
+  /**
+   * Pings a Geoserver layer to see if it has data. 
+   *   Function called from controller/Layer and from controller/Mapa
+   *
+   * @access	public
+   * @param   layer name and type
+   * @return	boolean
+  */
+ 	function ping_layer( $layer_name, $layer_type )
+  {
+    $FeatOrRaster = "";
+    $FeatOrRaster2 = "";
+    switch( substr( $layer_type, 0, 4 ) ) // possible values: see $this->layer_types in controller Layer
+    {
+      case "feat": $FeatOrRaster  = $this->config->item('feat_v_rast_1'); 
+                   $FeatOrRaster2 = $this->config->item('feat_v_rast_2'); 
+                   break; 
+        
+      case "rast": // both rasters and DEM are coverages
+      case "dem" : $FeatOrRaster  = $this->config->item('rast_v_feat_1'); 
+                   $FeatOrRaster2 = $this->config->item('rast_v_feat_2'); 
+                   break;
+    }
+    $url = $this->config->item( 'geoserver_url' ) . 'rest/workspaces/' 
+         . substr( $layer_name, 0, strpos( $layer_name, ":" ) ) . "/" 
+         . $FeatOrRaster . "/"
+         . substr( $layer_name, strpos( $layer_name, ":" ) + 1 ) . "/"
+         . $FeatOrRaster2 . "/"
+         . substr( $layer_name, strpos( $layer_name, ":" ) + 1 ) . ".html";
+    
+    $debug = ""; // "2>&1"; // '';
+    $curl_app = $this->get_curl_env();
+    $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: text/xml" ' . $url . ' ' . $debug; 
+    log_message('error', 'CURL CALL >> ' . $curl_call );
+    $out = shell_exec( $curl_call ); 
+    log_message('error', 'CURL OUTPUT >> ' . $out );
+    
+    $xml = simplexml_load_string( $out );
+    log_message('error', 'OUT2XML >> ' . $xml );
+    
+    // if( ( ! ( $xml instanceof SimpleXMLElement ) ) || empty( $xml ) )
+    if( strpos( $xml, 'HTTP ERROR: 404' ) === false ) 
+    {
+      $err = "Error GeoServer layer $url is not enabled, please check it in GeoServer.";
+      log_message( 'error', "app/model/geoserver/E-094 " . $err );
+      return false;
+    }
+    else return $xml;
   }
   
   /**
@@ -110,9 +166,10 @@ class Geoserver_model extends CI_Model
     
     $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: text/xml" ' . $this->config->item( 'geoserver_rest' ) . $debug; 
 
-    // log_message('error', "curl: " . $curl_call . " " );
+    //echo( "" . $curl_call . " " );
     $out = shell_exec( $curl_call ); 
-    // log_message('error', "curl out: " . $out . "" );
+    //echo( "" . $out . "" );
+    // TBD: if there's no connection to Geoserver, the next line fails
     $xml = simplexml_load_string( $out );
     // log_message('error', print_r( $xml ) );
     if( ( ! ( $xml instanceof SimpleXMLElement ) ) || empty( $xml ) )

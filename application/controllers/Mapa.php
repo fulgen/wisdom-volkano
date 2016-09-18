@@ -26,6 +26,17 @@ class Mapa extends CI_Controller {
 			redirect('auth/login', 'refresh');
 		}
     
+    // 0. is geoserver running? 
+    $this->load->model( 'geoserver_model', 'geoserver' );
+    $result = $this->geoserver->get_workspaces();
+    if( $result == false )
+    {
+      $err = 'Error: GeoServer is not available.';
+      log_message( 'error', 'app/controller/Mapa/E-093 ' . $err ); 
+      show_error( $err );
+      exit( -1 );
+    }
+    
     // 1. Load granted / available layers
     $this->load->model( 'Userlayer_model', 'Userlayer' );
     $result = $this->Userlayer->get_all_layers( $this->session->userdata( 'email' ) );
@@ -38,6 +49,14 @@ class Mapa extends CI_Controller {
     }
     else
     { 
+      // 1.1. are layers available in GeoServer? 
+      foreach( $result as $layer )
+      {
+        $ping = $this->geoserver->ping_layer( $layer->layer_name_ws, $layer->layer_type ); 
+        if( $ping === false )
+          redirect( 'layer' );
+      }
+      
       $data[ 'layers' ] = $result;
     }
 
@@ -53,6 +72,10 @@ class Mapa extends CI_Controller {
     else
     { 
       $data[ 'ts' ] = $result;
+      $data[ 'left'  ] = 0;
+      $data[ 'right' ] = 0;
+      $data[ 'top'   ] = 0;
+      $data[ 'down'  ] = 0;
    
       $this->load->model( 'timeseries_model', 'ts_model' );
       // only for msbas ts
@@ -62,17 +85,30 @@ class Mapa extends CI_Controller {
         if( $ts->ts_type == "msbas" )
         {
           $file = array( 0 => ( $this->config->item( 'folder_msbas' ) . trim( $ts->ts_file ) . $this->config->item( 'folder_msbas_ras' ) . trim( $ts->ts_file_raster ) ) );
-          $this->load->library( 'EnviHeader', $file );
-          $enviheader = new EnviHeader( $file );
-          $enviheader->read_header();
-      
-          $data[ 'left'  ] = $ts->ts_coord_lon_left;
-          $data[ 'right' ] = $ts->ts_coord_lon_left 
-              + $ts->ts_coord_lon_inc * $enviheader->get_value( "nCol" );
-          // TBD: negative!
-          $data[ 'top'   ] = $ts->ts_coord_lat_top;
-          $data[ 'down'  ] = $ts->ts_coord_lat_top 
-              - $ts->ts_coord_lat_inc * $enviheader->get_value( "nRow" );
+
+          if( file_exists( $file[0] ))
+          {
+            $this->load->library( 'EnviHeader', $file );
+            $enviheader = new EnviHeader( $file );
+            $enviheader->read_header();
+        
+            $data[ 'left'  ] = $ts->ts_coord_lon_left;
+            $data[ 'right' ] = $ts->ts_coord_lon_left 
+                + $ts->ts_coord_lon_inc * $enviheader->get_value( "nCol" );
+            // TBD: negative!
+            $data[ 'top'   ] = $ts->ts_coord_lat_top;
+            $data[ 'down'  ] = $ts->ts_coord_lat_top 
+                - $ts->ts_coord_lat_inc * $enviheader->get_value( "nRow" );
+                
+          }
+          else // default
+          {
+            $data[ 'left'  ] = -1.1;
+            $data[ 'right' ] = -1.9;
+            $data[ 'top'   ] = 29.1;
+            $data[ 'down'  ] = 29.8;
+            
+          }
           break; // one set of boundaries is enough
         }
       }
@@ -97,7 +133,6 @@ class Mapa extends CI_Controller {
       }
     }
     // 3.2 Load ts config 
-    // TBD only if (still) granted!
     if( ! isset( $_SESSION[ 'ts_msbas' ] ) )
     {
       $config = $this->status->get_ts_config();
@@ -144,7 +179,6 @@ class Mapa extends CI_Controller {
     }
     
     // 3.3 Load layer config
-    // TBD only if (still) granted!
     $res = $this->status->get_layer_visib();
     if( $res )
     {
@@ -165,11 +199,29 @@ class Mapa extends CI_Controller {
         'config_opacity' => 1
       );
     }
+
+    // 3.3.1. internet connection to load background layers? TBD use
+    $ping = @fsockopen( 'maps.google.com' );
+    if( $ping )
+    {
+      $data[ 'internet' ] = 'yes';
+      @fclose( $ping );
+    }
+    else
+    {
+      $data[ 'internet' ] = 'no';
+    }
+    
+    // 3.3.2. api key defined to load google maps layer? TBD use
+    if( $this->config->item( 'gmaps_key' ) == '' )
+      $data[ 'gmap' ] = 'no';
+    else
+      $data[ 'gmap' ] = 'yes';
+      
     
     $this->load->helper( array( 'menu', 'form' ) );
     $this->load->view( 'mapa', $data ); 
     // $this->load->view( 'footer' );
-    
 	}
   /* end of function index */
   

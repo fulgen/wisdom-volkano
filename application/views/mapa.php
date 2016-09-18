@@ -536,11 +536,19 @@ defined('BASEPATH') OR exit('No direct script access allowed');
               }
 
               // 3. MSBAS
-              if( type == 'msbas' 
-               && coord4326[0] >= <?php echo $left; ?> 
-               && coord4326[0] <= <?php echo $right; ?> 
-               && coord4326[1] <= <?php echo $top; ?> 
-               && coord4326[1] >= <?php echo $down; ?> )  // coord4326[1] is negative!
+              /* Original code */
+             if( (type == 'msbas')
+             && ( coord4326[0] >= <?php echo $left; ?> )
+             && ( coord4326[0] <= <?php echo $right; ?> )
+             && ( coord4326[1] <= <?php echo $top; ?> )
+             && ( coord4326[1] >= <?php echo $down; ?>)  )  // coord4326[1] is negative! */
+            
+              /* code only for Safari 
+              if( (type == 'msbas')
+              && ( coord4326[0] >= $left  )
+              && ( coord4326[0] <= $right )
+              && ( coord4326[1] <= $top   )
+              && ( coord4326[1] >= $down  )  )  // coord4326[1] is negative!  */
               {
                 htmlMSBAS = htmlMSBAS + '<button id="but' + numButMSBAS 
                     + '" type="button" ' 

@@ -1,14 +1,5 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-/**
- * Layer Controller
- *
- * @package		CodeIgniter
- * @subpackage	Controllers
- * @version	  1.0
- * @author		Fulgencio Sanmartín
- * @link		email@fulgenciosanmartin.com
-*/
 class Layer extends CI_Controller {
 	var $layer_name = "";
   var $layer_types = "raster,dem,feat-point,feat-line,feat-poly"; // to be used for populating and validation 
@@ -49,6 +40,16 @@ class Layer extends CI_Controller {
 		}
 		else
 		{
+      $this->load->model( 'geoserver_model', 'geoserver' );
+      $result = $this->geoserver->get_workspaces();
+      if( $result == false )
+      {
+        $err = 'Error: GeoServer is not available.';
+        log_message( 'error', 'app/controller/Layer/E-095 ' . $err ); 
+        show_error( $err );
+        exit( -1 );
+      }
+    
       $this->load->model( 'layer_model', 'layer' );
       $this->load->model( 'userlayer_model', 'userlayer' );
       
@@ -61,6 +62,8 @@ class Layer extends CI_Controller {
 			foreach( $this->data[ 'layers' ] as $k => $layer )
 			{
 				$this->data[ 'layers' ][ $k ]->users = $this->userlayer->get_layer_users( $layer->layer_name_ws );
+        
+        $this->data[ 'layers' ][ $k ]->ping = $this->geoserver->ping_layer( $layer->layer_name_ws, $layer->layer_type );
 			}   
 			$this->load->view( 'auth/layer_list', $this->data );
 		}
@@ -329,7 +332,7 @@ class Layer extends CI_Controller {
 		{
       $layers = $this->input->post( 'grant' );
       $this->load->model( 'userlayer_model', 'userlayer' );
-
+      // TBD: all layers unloaded; only the checked below are loaded
       $this->userlayer->unload_layers( $this->session->userdata( 'email' ) );
       if( is_array( $layers ) )
       {
@@ -353,7 +356,7 @@ class Layer extends CI_Controller {
   
   /**
    * Saves user config (layers visibility, opacity...)
-   *   right before moving from the map canvas
+   *   right before moving from the map canvas TBD
    *
    * @access	public
    * @param   [POST] layers array, plus the new page to go to 
@@ -370,7 +373,7 @@ class Layer extends CI_Controller {
     // only if we are coming from the map (home) and there is at least 1 layer
 		else
     {
-      $count = count( $this->input->post( 'visible' ) ); 
+      $count = count( $this->input->post( 'visible' ) ); // TBD: ensure that returns 1 if it is not an array, just one
       if( $count > 0 )
       {
         $visible = $this->input->post( 'visible' );
