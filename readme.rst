@@ -5,58 +5,62 @@ wisdom-volkano
 Web Interface for Sharing Data On Monitoring Volkano
 (swahili for volcano, from portuguese volcão)
 
-wisdom-volkano is built on top of CodeIgniter 3.0.4, OpenLayers 3.12.1 and Geoserver 2.8.1. 
-This project was part of a GIS master and foreseen in three iterations in 2015. It will be maintained in a best effort basis. Data has copyright and is not included. 
+wisdom-volkano is built on top of CodeIgniter 3.1.0, OpenLayers 3.18.2 and Geoserver 2.9.1. 
+This project was part of a GIS master and foresaw in three iterations in 2015-6. It will be maintained in a best effort basis. Data has copyright and is not included. 
 
 *******************
 Release Information
 *******************
 
-This is the third and last iteration, aka v1.0 as of February 2016.
+This is version 1.1 as of September 2016.
 
 
 **************************
 Changelog and New Features
 **************************
 
-Third iteration (February 2016):
-* GNSS time series
-* seismic location map
-* fr5 and fr3.2: save to and load from timeseries favorites
-* fr3.3: input coordinates manually to calculate and load timeseries of the point
-* preload a timeseries with relevant events
-* fr14: show one histogram and GNSS chart per station at the same time
-* fr11: persistent configuration, zoom, position, time series and layers view 
-* fre2: audit log
-* fr8: detrend time series
+New version 1.1:
+- Upgraded OpenLayers, Highcharts and jquery.
+- Adapted the application to work in MacOSX (i.e., permissions to remove previously created files).
+
+Third iteration (February 2016) aka v1.0:
+- GNSS time series
+- seismic location map
+- fr5 and fr3.2: save to and load from timeseries favorites
+- fr3.3: input coordinates manually to calculate and load timeseries of the point
+- preload a timeseries with relevant events
+- fr14: show one histogram and GNSS chart per station at the same time
+- fr11: persistent configuration, zoom, position, time series and layers view 
+- fre2: audit log
+- fr8: detrend time series
 
 Second iteration (October 2015):
-* user manual update
-* fr3.1: click on a raster loads the time series of the pixel as chart with time as X-axis 
-* fr9: save time series pixel values
-* fr13: calculate timeseries from raster stack if it does not exist
-* fr14: calculate and load histogramme (seismic counting data)
-* google maps added as a background
-* layers of seismic and GNSS stations added as backgrounds
+- user manual update
+- fr3.1: click on a raster loads the time series of the pixel as chart with time as X-axis 
+- fr9: save time series pixel values
+- fr13: calculate timeseries from raster stack if it does not exist
+- fr14: calculate and load histogramme (seismic counting data)
+- google maps added as a background
+- layers of seismic and GNSS stations added as backgrounds
 
 First iteration (July 2015):
-* user manual
-* fr1: basic gis: zoom, pan, 2 external rasters (gmaps, osm), rasters and features
-* fr2: select pixel
-* fre1: data security: login, admin, layer-user
-* fr10: add layers 
-* fro1: portability vs update of the system 
+- user manual
+- fr1: basic gis: zoom, pan, 2 external rasters (gmaps, osm), rasters and features
+- fr2: select pixel
+- fre1: data security: login, admin, layer-user
+- fr10: add layers 
+- fro1: portability vs update of the system 
 
 
 *******************
 Server Requirements
 *******************
 
-Tested in Ubuntu 12.04 and Windows 7 and 8.
+Tested in Ubuntu 12.04, Windows 7 and 8.1, and MacOSX.
 PHP version 5.3.1 or newer is recommended. 
 Apache 2.2.x
 PostgreSQL 9.x 
-Geoserver version 2.8.1 on Tomcat 7, on Java 7
+Geoserver version 2.9.1 on Tomcat 7, on Java 7
 Browser Mozilla Firefox, Chrome or Safari
 
 ************
