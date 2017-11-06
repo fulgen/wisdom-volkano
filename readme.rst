@@ -83,13 +83,14 @@ Installation (for Windows 7)
 - Browser: http://localhost/ + Edit Apache24/htdocs: => anything
 
 - Edit httpd.conf: DocumentRoot becomes...
-  ``ServerName localhost``
-  ``ErrorLog d:/wisdomvolkano/Apache24/prod_error.log``
-  ``LogLevel warn``
-  ``CustomLog d:/wisdomvolkano/Apache24/prod_access.log combined``
-  ``DocumentRoot "d:/wisdomvolkano/web"``
-  ``<Directory "d:/wisdomvolkano/web">``
-  ``  DirectoryIndex index.php``
+
+  + ``ServerName localhost``  
+  + ``ErrorLog d:/wisdomvolkano/Apache24/prod_error.log``
+  + ``LogLevel warn``
+  + ``CustomLog d:/wisdomvolkano/Apache24/prod_access.log combined``
+  + ``DocumentRoot "d:/wisdomvolkano/web"``
+  + ``<Directory "d:/wisdomvolkano/web">``
+  + ``  DirectoryIndex index.php``
 
 
 
@@ -100,12 +101,15 @@ Installation (for Windows 7)
 - Extract: D:\wisdomvolkano\php
 - Copy: php.ini-development php.ini
 - Edit php.ini: Uncomment 
-``
-  doc_root="d:\wisdomvolkano\php"
-  extension_dir="d:\wisdomvolkano\php\ext"
-  extension=php_pdo_pgsql.dll
-  extension=php_pgsql.dll
-``
+
+  ``doc_root="d:\wisdomvolkano\php"``
+  
+  ``extension_dir="d:\wisdomvolkano\php\ext"``
+  
+  ``extension=php_pdo_pgsql.dll``
+  
+  ``extension=php_pgsql.dll``
+  
 - Edit httdp.conf: add
 ``
   LoadFile "d:/wisdomvolkano/PostgreSQL/pg10/bin/libpq.dll"
