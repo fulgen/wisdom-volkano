@@ -16,7 +16,8 @@ class Geoserver_model extends CI_Model
    * Calculates environment. Does not work as __construct
    *
    * @access	private
-   * @return	the curl executable in win or linux
+   * @return	the curl executable in win or linux. 
+   *          NOTE: in windows, ___full___ path to curl exe is needed
   */  
 	private function get_curl_env()
 	{
@@ -30,6 +31,7 @@ class Geoserver_model extends CI_Model
       case 'production':
       default:
         $curl = "curl";
+        $curl = '"D:\\wisdomvolkano\\cURL\\bin\\curl.exe"';      
         break;
     }  
     return $curl;
@@ -44,14 +46,14 @@ class Geoserver_model extends CI_Model
   */
  	function get_workspaces()
   {
-    $debug = ''; // '2>&1'; // '';
     $curl_app = $this->get_curl_env();
-    $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: text/xml" ' . $this->config->item( 'geoserver_rest' ) . '/workspaces/ ' . $debug; 
-    //log_message('error', $curl_call );
-    $out = shell_exec( $curl_call ); 
-    //log_message('error', $out );
+    // $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: text/xml" ' . $this->config->item( 'geoserver_rest' ) . '/workspaces/ ' . $debug; 
+    $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -H "Accept: application/xml" ' . $this->config->item( 'geoserver_rest' ) . $this->debug; // . '/workspaces/ ';  -v -XGET 
+    // log_message('error', $curl_call );
+    $out = shell_exec( $curl_call );
+    // log_message('error', $out . "----" . $err );
     $xml = simplexml_load_string( $out );
-    //log_message('error', $xml );
+    // log_message('error', $xml );
     if( ( ! ( $xml instanceof SimpleXMLElement ) ) || empty( $xml ) )
     {
       log_message( 'error', 'app/model/geoserver/E-092 Error Cannot connect to GeoServer. Is it running?' );
@@ -71,6 +73,11 @@ class Geoserver_model extends CI_Model
   */
  	function ping_layer( $layer_name, $layer_type )
   {
+    if( $layer_name == "" or $layer_type == "" ) 
+    {
+      // log_message('error', 'ping empty call ' );
+      return false;
+    }
     $FeatOrRaster = "";
     $FeatOrRaster2 = "";
     switch( substr( $layer_type, 0, 4 ) ) // possible values: see $this->layer_types in controller Layer
@@ -89,20 +96,19 @@ class Geoserver_model extends CI_Model
          . $FeatOrRaster . "/"
          . substr( $layer_name, strpos( $layer_name, ":" ) + 1 ) . "/"
          . $FeatOrRaster2 . "/"
-         . substr( $layer_name, strpos( $layer_name, ":" ) + 1 ) . ".html";
+         . substr( $layer_name, strpos( $layer_name, ":" ) + 1 ) . ".xml"; // ".html"
     
-    $debug = ""; // "2>&1"; // '';
     $curl_app = $this->get_curl_env();
-    $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: text/xml" ' . $url . ' ' . $debug; 
-    log_message('error', 'CURL CALL >> ' . $curl_call );
+    // $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: text/xml" ' . $url . ' ' . $debug; 
+    $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -H "Accept: application/xml" ' . $url . ' ' . $this->debug; 
+    // log_message('error', 'CURL CALL >> ' . $curl_call );
     $out = shell_exec( $curl_call ); 
-    log_message('error', 'CURL OUTPUT >> ' . $out );
-    
+    // log_message('error', 'CURL OUTPUT >> ' . $out );
     $xml = simplexml_load_string( $out );
-    log_message('error', 'OUT2XML >> ' . $xml );
+    // log_message('error', 'OUT2XML >> ' . var_dump( $xml ) );
     
     // if( ( ! ( $xml instanceof SimpleXMLElement ) ) || empty( $xml ) )
-    if( strpos( $xml, 'HTTP ERROR: 404' ) === false ) 
+    if( strpos( $xml, 'No such coverage' ) === true ) 
     {
       $err = "Error GeoServer layer $url is not enabled, please check it in GeoServer.";
       log_message( 'error', "app/model/geoserver/E-094 " . $err );
@@ -128,7 +134,8 @@ class Geoserver_model extends CI_Model
     {
       if( $ws == $param_workspace ) 
       {
-        $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . '-v -XGET -H "Accept: text/xml" ' . $this->config->item( 'geoserver_rest' ) . $ws . '/coveragestores/' . $debug; 
+        // $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . '-v -XGET -H "Accept: text/xml" ' . $this->config->item( 'geoserver_rest' ) . $ws . '/coveragestores/' . $debug; 
+        $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . '-v -XGET -H "Accept: application/xml" ' . $this->config->item( 'geoserver_rest' ) . $ws . '/coveragestores/' . $debug; 
         $found = true;
       }      
     }    
@@ -164,7 +171,8 @@ class Geoserver_model extends CI_Model
     $rest_ws_fea = '/datastores/'; 
     $debug = ''; // '2>&1'; // '';
     
-    $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: text/xml" ' . $this->config->item( 'geoserver_rest' ) . $debug; 
+    // $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: text/xml" ' . $this->config->item( 'geoserver_rest' ) . $debug; 
+    $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: application/xml" ' . $this->config->item( 'geoserver_rest' ) . $debug; 
 
     //echo( "" . $curl_call . " " );
     $out = shell_exec( $curl_call ); 
@@ -182,7 +190,8 @@ class Geoserver_model extends CI_Model
     foreach( $xml as $element ) 
     {
       // echo "<br> -------------- workspace #$i: $element->name -- rasters: <br/>";
-      $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: text/xml" ' . $this->config->item( 'geoserver_rest' )  . $element->name . $rest_ws_ras . $debug;  // first, the rasters
+      // $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: text/xml" ' . $this->config->item( 'geoserver_rest' )  . $element->name . $rest_ws_ras . $debug;  // first, the rasters
+      $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: application/xml" ' . $this->config->item( 'geoserver_rest' )  . $element->name . $rest_ws_ras . $debug;  // first, the rasters
 
       //log_message('error', "raster: " . $curl_call . "" );
       $out2 = shell_exec( $curl_call ); 
@@ -202,7 +211,8 @@ class Geoserver_model extends CI_Model
       }
 
       // echo "<br> -------------- workspace #$i: $element->name -- features: <br/>";
-      $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: text/xml" ' . $this->config->item( 'geoserver_rest' )  . $element->name . $rest_ws_fea . $debug;  // second, the features
+      // $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: text/xml" ' . $this->config->item( 'geoserver_rest' )  . $element->name . $rest_ws_fea . $debug;  // second, the features
+      $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: application/xml" ' . $this->config->item( 'geoserver_rest' )  . $element->name . $rest_ws_fea . $debug;  // second, the features
 
       // log_message('error', "feat: " . $curl_call . "" );
       $out2 = shell_exec( $curl_call ); 
@@ -237,6 +247,7 @@ class Geoserver_model extends CI_Model
     $curl_app = $this->get_curl_env();
     // Filter through existing workspaces
     // $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: text/xml" ' . $p_url; 
+    // $curl_call = $curl_app . ' -u ' . $this->config->item( 'geoserver_userpwd' ) . ' -v -XGET -H "Accept: application/xml" ' . $p_url; 
 
     $curl_call = $curl_app . ' "' . $urlGPSSta . '" '; 
     // log_message( 'error', $curl_call );
