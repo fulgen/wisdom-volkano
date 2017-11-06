@@ -68,12 +68,14 @@ Installation (for Windows 7)
 ************
 
 1. Wisdom-volkano
+
 - Download: <https://github.com/fulgen/wisdom-volkano>
-- Extract: D:\wisdomvolkano\web\
+- Extract: D:\\wisdomvolkano\\web\\
 
 
 
 2. Apache httpd 
+
 - Download: <http://www.apachelounge.com/download/> (64 bits binaries)
 - Extract: D:\wisdomvolkano\Apache24
 - Edit httdp.conf: C:/Apache24 => D:/wisdomvolkano/Apache24 (all occurrences)
@@ -81,11 +83,12 @@ Installation (for Windows 7)
 - Browser: http://localhost/ + Edit Apache24/htdocs: => anything
 
 - Edit httpd.conf: DocumentRoot becomes...
-ServerName localhost
+``ServerName localhost
 ErrorLog d:/wisdomvolkano/Apache24/prod_error.log
 LogLevel warn
 CustomLog d:/wisdomvolkano/Apache24/prod_access.log combined
 DocumentRoot "d:/wisdomvolkano/web"
+``
 <Directory "d:/wisdomvolkano/web">
     DirectoryIndex index.php
 
