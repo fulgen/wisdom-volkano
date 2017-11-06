@@ -84,13 +84,19 @@ Installation (for Windows 7)
 
 - Edit httpd.conf: DocumentRoot becomes...
 
-  + ``ServerName localhost``  
-  + ``ErrorLog d:/wisdomvolkano/Apache24/prod_error.log``
-  + ``LogLevel warn``
-  + ``CustomLog d:/wisdomvolkano/Apache24/prod_access.log combined``
-  + ``DocumentRoot "d:/wisdomvolkano/web"``
-  + ``<Directory "d:/wisdomvolkano/web">``
-  + ``  DirectoryIndex index.php``
+  ``ServerName localhost``  
+  
+  ``ErrorLog d:/wisdomvolkano/Apache24/prod_error.log``
+  
+  ``LogLevel warn``
+  
+  ``CustomLog d:/wisdomvolkano/Apache24/prod_access.log combined``
+  
+  ``DocumentRoot "d:/wisdomvolkano/web"``
+  
+  ``<Directory "d:/wisdomvolkano/web">``
+  
+  ``  DirectoryIndex index.php``
 
 
 
@@ -111,12 +117,15 @@ Installation (for Windows 7)
   ``extension=php_pgsql.dll``
   
 - Edit httdp.conf: add
-``
-  LoadFile "d:/wisdomvolkano/PostgreSQL/pg10/bin/libpq.dll"
-  LoadModule php5_module "d:/wisdomvolkano/php/php5apache2_4.dll"
-  AddHandler application/x-httpd-php .php
-  PHPIniDir "d:/wisdomvolkano/php" 
-``
+  
+  ``LoadFile "d:/wisdomvolkano/PostgreSQL/pg10/bin/libpq.dll"``
+  
+  ``LoadModule php5_module "d:/wisdomvolkano/php/php5apache2_4.dll"``
+  
+  ``AddHandler application/x-httpd-php .php``
+  
+  ``PHPIniDir "d:/wisdomvolkano/php" ``
+  
 - Edit Apache24/htdocs/info.php:  <?php phpinfo(); ?>
 - Browser: http://localhost/info.php
 
@@ -128,9 +137,8 @@ Installation (for Windows 7)
 - Download: <https://www.postgresql.org/download/windows/> (10.0 win64 installer)
 - Install: (includes pgAdmin), usr/pwd: postgres/postgresql  usr/pwd: progci/progci
 - Import sql in order from D:\wisdomvolkano\web\db\:
-``
-  d:\wisdomvolkano\PostgreSQL\pg10\bin> psql -U postgres -d wisdomvolkano < d:\wisdomvolkano\web\db\01, 02, 03, 04
-``
+
+  ``d:\wisdomvolkano\PostgreSQL\pg10\bin> psql -U postgres -d wisdomvolkano < d:\wisdomvolkano\web\db\01, 02, 03, 04``
 
   
   
@@ -146,10 +154,11 @@ Installation (for Windows 7)
 - Login root/wisdomvolkano to test
 - Menu: Users, tab Users/groups: create usr/pwd progci/pwd
 - Edit: webapps/geoserver/data_dir/security/rest.properties with:
-``
-  /**;GET=ADMIN,PROG
-  /**;POST,DELETE,PUT=ADMIN 
-``
+  
+  ``/**;GET=ADMIN,PROG``
+  
+  ``/**;POST,DELETE,PUT=ADMIN``
+  
 - Logout. 
 - Browser: http://localhost:8080/geoserver/rest
 
@@ -181,34 +190,48 @@ Installation (for Windows 7)
 7. Config wisdom-volkano
 ------------------------
 - Edit web/application/config/database.php (production) with the params in section 4:
-``
-  'hostname' => '127.0.0.1', // 'localhost',
-  'username' => 'progci',
-  'password' => 'progci',
-  'database' => 'wisdomvolkano', 
-``
-- Edit web/application/config/config.php (production) 
-``
-    // geoserver
-  $config['geoserver_rest']    = 'http://localhost:8080/geoserver/rest/workspaces/';
-  $config['geoserver_userpwd'] = 'admin:geoserver';
-    // timeseries folders
-  $config['bar_slash']         = '\\';
-  $config['folder_msbas']      = 'd:\\wisdomvolkano\\web\\assets\\data\\msbas\\'; 
-  $config['folder_msbas_ras']  = '\\RASTERS\\'; // example:  .../msbas/name_of_ts/RASTERS
-  $config['folder_msbas_ts']   = '\\Time_Series\\';  // example:  .../msbas/name_of_ts/Time_Series
-  $config['folder_histogram']  = 'd:\\wisdomvolkano\\web\\assets\\data\\seism-count\\'; 
-  $config['folder_gnss']       = 'd:\\wisdomvolkano\\web\\assets\\data\\gnss-ts\\'; 
-  $config['folder_detrend']    = 'detrend\\'; // added to folder msbas or gnss
-    // sessions folder
-  $config['sess_save_path']    = 'd:\\wisdomvolkano\\web\\ci_sessions\\';
 
-  $config['base_url'] = 'http://localhost/'; 
-``
+  ``'hostname' => '127.0.0.1', // 'localhost',``
+  
+  ``'username' => 'progci',``
+  
+  ``'password' => 'progci',``
+  
+  ``'database' => 'wisdomvolkano', ``
+  
+- Edit web/application/config/config.php (production) 
+
+  ``// geoserver``
+  
+  ``$config['geoserver_rest']    = 'http://localhost:8080/geoserver/rest/workspaces/';``
+  
+  ``$config['geoserver_userpwd'] = 'admin:geoserver';``
+  
+  ``// timeseries folders``
+  
+  ``$config['bar_slash']         = '\\';``
+  
+  ``$config['folder_msbas']      = 'd:\\wisdomvolkano\\web\\assets\\data\\msbas\\'; ``
+  
+  ``$config['folder_msbas_ras']  = '\\RASTERS\\'; // example:  .../msbas/name_of_ts/RASTERS``
+  
+  ``$config['folder_msbas_ts']   = '\\Time_Series\\';  // example:  .../msbas/name_of_ts/Time_Series``
+  
+  ``$config['folder_histogram']  = 'd:\\wisdomvolkano\\web\\assets\\data\\seism-count\\'; ``
+  
+  ``$config['folder_gnss']       = 'd:\\wisdomvolkano\\web\\assets\\data\\gnss-ts\\'; ``
+  
+  ``$config['folder_detrend']    = 'detrend\\'; // added to folder msbas or gnss``
+  
+  ``// sessions folder``
+  
+  ``$config['sess_save_path']    = 'd:\\wisdomvolkano\\web\\ci_sessions\\';``
+
+  ``$config['base_url'] = 'http://localhost/'; ``
+  
 - Get a Google Maps API key <https://developers.google.com/maps/documentation/javascript/get-api-key>
-``
-  $config['gmaps_key'] = 'Google_Maps_Javascript_API_Key';
-``
+
+  ``$config['gmaps_key'] = 'Google_Maps_Javascript_API_Key';``
 
  
 
@@ -218,10 +241,10 @@ Installation (for Windows 7)
 - Download: <https://curl.haxx.se/download.html> win x64
 - Extract: d:\wisdomvolkano\curl
 - Edit: (if needed) web\application\model\Geoserver_model.php 
-``
-  $curl = "curl"; // for linux
-  $curl = '"D:\\wisdomvolkano\\cURL\\bin\\curl.exe"'; // for windows
-``
+
+  ``$curl = "curl"; // for linux``
+  
+  ``$curl = '"D:\\wisdomvolkano\\cURL\\bin\\curl.exe"'; // for windows``
 
  
 
@@ -229,57 +252,108 @@ Installation (for Windows 7)
 ------------------------
 
 - Copy files to d:\wisdomvolkano\web\assets\data with the following structure:
-  ├───DInSAR\
-  │   ├───Amplitude
-  │   │   ├───ENVISAT
-  │   │   │   ├───Asc42i5
-  │   │   │   └───Desc35i2
-  │   │   └───ERS
-  │   │       └───Asc228
-  │   ├───Cint
-  │   │   ├───ENVISAT
-  │   │   │   ├───Asc42i5
-  │   │   │   └───Desc35i2
-  │   │   └───ERS
-  │   │       └───Asc228
-  │   ├───Coh
-  │   │   ├───ENVISAT
-  │   │   │   ├───Asc42i5
-  │   │   │   └───Desc35i2
-  │   │   └───ERS
-  │   │       └───Asc228
-  │   ├───MagCint
-  │   │   └───ENVISAT
-  │   │       └───Desc35i2
-  │   ├───MASK
-  │   └───Uint
-  │       └───ENVISAT
-  │           ├───Asc42i5
-  │           └───Desc35i2
-  ├───gnss-map\
-  ├───gnss-ts\
-  │   └───detrend
-  ├───msbas\
-  │   ├───crater-ew
-  │   │   ├───RASTERS
-  │   │   └───Time_Series
-  │   │       └───detrend
-  │   ├───crater-up
-  │   │   ├───RASTERS
-  │   │   └───Time_Series
-  │   │       └───detrend
-  │   ├───EW
-  │   │   ├───RASTERS
-  │   │   └───Time_Series
-  │   │       └───detrend
-  │   └───UP
-  │       ├───RASTERS
-  │       └───Time_Series
-  │           └───detrend
-  ├───seism-count\
-  ├───seism-locat\
-  ├───stations\
-  └───events.js
+  
+  ``├───DInSAR\``
+  
+  ``│   ├───Amplitude``
+  
+  ``│   │   ├───ENVISAT``
+  
+  ``│   │   │   ├───Asc42i5``
+  
+  ``│   │   │   └───Desc35i2``
+  
+  ``│   │   └───ERS``
+  
+  ``│   │       └───Asc228``
+  
+  ``│   ├───Cint``
+  
+  ``│   │   ├───ENVISAT``
+  
+  ``│   │   │   ├───Asc42i5``
+  
+  ``│   │   │   └───Desc35i2``
+  
+  ``│   │   └───ERS``
+  
+  ``│   │       └───Asc228``
+  
+  ``│   ├───Coh``
+  
+  ``│   │   ├───ENVISAT``
+  
+  ``│   │   │   ├───Asc42i5``
+  
+  ``│   │   │   └───Desc35i2``
+  
+  ``│   │   └───ERS``
+  
+  ``│   │       └───Asc228``
+  
+  ``│   ├───MagCint``
+  
+  ``│   │   └───ENVISAT``
+  
+  ``│   │       └───Desc35i2``
+  
+  ``│   ├───MASK``
+  
+  ``│   └───Uint``
+  
+  ``│       └───ENVISAT``
+  
+  ``│           ├───Asc42i5``
+  
+  ``│           └───Desc35i2``
+  
+  ``├───gnss-map\``
+  
+  ``├───gnss-ts\``
+  
+  ``│   └───detrend``
+  
+  ``├───msbas\``
+  
+  ``│   ├───crater-ew``
+  
+  ``│   │   ├───RASTERS``
+  
+  ``│   │   └───Time_Series``
+  
+  ``│   │       └───detrend``
+  
+  ``│   ├───crater-up``
+  
+  ``│   │   ├───RASTERS``
+  
+  ``│   │   └───Time_Series``
+  
+  ``│   │       └───detrend``
+  
+  ``│   ├───EW``
+  
+  ``│   │   ├───RASTERS``
+  
+  ``│   │   └───Time_Series``
+  
+  ``│   │       └───detrend``
+  
+  ``│   └───UP``
+  
+  ``│       ├───RASTERS``
+  
+  ``│       └───Time_Series``
+  
+  ``│           └───detrend``
+  
+  ``├───seism-count\``
+  
+  ``├───seism-locat\``
+  
+  ``├───stations\``
+  
+  ``└───events.js``
   
 
 
@@ -332,19 +406,25 @@ Installation (for Windows 7)
   - MSBAS, name "Nyiragongo-up", group folder "UP". All other default
   - Histogram, name "OVG-histogram", file "ovg.tsv", station OVG (as in the KML/Shapefile). Sample content: 
 Date  LP  SP  LP-accumulated  SP-accumulated
-``
-  01/01/2010	1	0	1	0
-  02/01/2010	2	1	3	1
-  03/01/2010	21	0	24	1
-  ...
-``
+
+  ``01/01/2010	1	0	1	0``
+  
+  ``02/01/2010	2	1	3	1``
+  
+  ``03/01/2010	21	0	24	1``
+  
+  ``...``
+  
   - GNSS, name "RBV-gnss", file "RBV.enu", station RBV (as in the KML/Shapefile). Sample content: 
-``
-  2010.73287671	0.00 0.00 0.00
-  2010.73561644	-1.10 -1.30 6.20
-  2010.73835616	0.70 0.60 -3.10
-  2010.74109589	5.20 2.80 12.60
-``
+
+  ``2010.73287671	0.00 0.00 0.00``
+  
+  ``2010.73561644	-1.10 -1.30 6.20``
+  
+  ``2010.73835616	0.70 0.60 -3.10``
+  
+  ``2010.74109589	5.20 2.80 12.60``
+  
 - Wisdom-Volkano: Menu: Home, Manage layers, enable the ones created in 11.
   
   
