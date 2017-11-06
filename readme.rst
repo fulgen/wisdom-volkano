@@ -83,15 +83,14 @@ Installation (for Windows 7)
 - Browser: http://localhost/ + Edit Apache24/htdocs: => anything
 
 - Edit httpd.conf: DocumentRoot becomes...
-``
-  ServerName localhost
-  ErrorLog d:/wisdomvolkano/Apache24/prod_error.log
-  LogLevel warn
-  CustomLog d:/wisdomvolkano/Apache24/prod_access.log combined
-  DocumentRoot "d:/wisdomvolkano/web"
-  <Directory "d:/wisdomvolkano/web">
-    DirectoryIndex index.php
-``
+  ``ServerName localhost``
+  ``ErrorLog d:/wisdomvolkano/Apache24/prod_error.log``
+  ``LogLevel warn``
+  ``CustomLog d:/wisdomvolkano/Apache24/prod_access.log combined``
+  ``DocumentRoot "d:/wisdomvolkano/web"``
+  ``<Directory "d:/wisdomvolkano/web">``
+  ``  DirectoryIndex index.php``
+
 
 
 3. PHP 5.x 
