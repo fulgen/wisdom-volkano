@@ -64,19 +64,262 @@ Geoserver version 2.9.1 on Tomcat 7, on Java 7
 Browser Mozilla Firefox, Chrome or Safari
 
 ************
-Installation
+Installation (for Windows 7)
 ************
 
-1. Install Apache httpd 
-2. Install Tomcat 
-3. Deploy the Geoserver war in Tomcat.
-4. Install PostgreSQL  
-5. Copy the wisdom-volkano files in a suitable place for Apache httpd.
-6. Go to applications/config and edit
-   a. config.php 
-   b. database.php 
-7. Log in http://apache-httpd/ with admin@admin.com / password
-8. Go to Help to read the administration manual   
+1. Wisdom-volkano
+- Download: <https://github.com/fulgen/wisdom-volkano>
+- Extract: D:\wisdomvolkano\web\
+
+
+
+2. Apache httpd 
+- Download: <http://www.apachelounge.com/download/> (64 bits binaries)
+- Extract: D:\wisdomvolkano\Apache24
+- Edit httdp.conf: C:/Apache24 => D:/wisdomvolkano/Apache24 (all occurrences)
+- DOS: httpd.exe (or as a service)
+- Browser: http://localhost/ + Edit Apache24/htdocs: => anything
+
+- Edit httpd.conf: DocumentRoot becomes...
+ServerName localhost
+ErrorLog d:/wisdomvolkano/Apache24/prod_error.log
+LogLevel warn
+CustomLog d:/wisdomvolkano/Apache24/prod_access.log combined
+DocumentRoot "d:/wisdomvolkano/web"
+<Directory "d:/wisdomvolkano/web">
+    DirectoryIndex index.php
+
+
+
+3. PHP 5.x 
+- Download: <http://windows.php.net/download/> (5.6 64 bits thread safe)
+- Extract: D:\wisdomvolkano\php
+- Copy: php.ini-development php.ini
+- Edit php.ini: Uncomment 
+doc_root="d:\wisdomvolkano\php"
+extension_dir="d:\wisdomvolkano\php\ext"
+extension=php_pdo_pgsql.dll
+extension=php_pgsql.dll
+
+- Edit httdp.conf: add
+LoadFile "d:/wisdomvolkano/PostgreSQL/pg10/bin/libpq.dll"
+LoadModule php5_module "d:/wisdomvolkano/php/php5apache2_4.dll"
+AddHandler application/x-httpd-php .php
+PHPIniDir "d:/wisdomvolkano/php" 
+- Edit Apache24/htdocs/info.php:  <?php phpinfo(); ?>
+- Browser: http://localhost/info.php
+
+
+
+4. PostgreSQL 
+- Download: <https://www.postgresql.org/download/windows/> (10.0 win64 installer)
+- Install: (includes pgAdmin), usr/pwd: postgres/postgresql  usr/pwd: progci/progci
+- Import sql in order from D:\wisdomvolkano\web\db\:
+  d:\wisdomvolkano\PostgreSQL\pg10\bin> psql -U postgres -d wisdomvolkano < d:\wisdomvolkano\web\db\01, 02, 03, 04
+
+  
+  
+5. Geoserver
+- Download: <http://geoserver.org/release/stable/>  
+- Install: d:\wisdomvolkano\Geoserver port 8080 usr/pwd admin/geoserver (run manual)
+- Start 
+- Browser: http://localhost:8080/geoserver/
+- Login. 
+- Menu: Passwords and change default master password: geoserver > wisdomvolkano
+- Login root/wisdomvolkano to test
+- Menu: Users, tab Users/groups: create usr/pwd progci/pwd
+- Edit: webapps/geoserver/data_dir/security/rest.properties with:
+/**;GET=ADMIN,PROG
+/**;POST,DELETE,PUT=ADMIN 
+- Logout. 
+- Browser: http://localhost:8080/geoserver/rest
+
+
+
+6. GDAL libraries 
+- Download: <http://geoserver.org/release/stable/>  
+- Copy jar to geoserver/WEB-INF/lib
+- Follow: <http://docs.geoserver.org/latest/en/user/data/raster/gdal.html>
+
+- Download: <http://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.16/native/gdal/>
+  gdal-data.zip
+- Extract gdal-data.zip to d:\wisdomvolkano\geoserver\data_dir\gdal-data
+- Env: GDAL_DATA=d:\wisdomvolkano\geoserver\data_dir\gdal-data
+
+- Download: <http://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.16/native/gdal/windows/MSVC2010/> gdal-1.9.2-MSVC2010-x64.zip	
+- Extract gdal to d:\wisdomvolkano\geoserver\data_dir\gdal
+- Path: add d:\wisdomvolkano\geoserver\data_dir\gdal
+- DOS: gdalinfo --formats (ENVI hdr should be listed)
+
+- Restart Geoserver
+- Login
+- Menu: Stores, Add (ENVI should be listed)
+
+
+
+7. Config wisdom-volkano
+- Edit web/application/config/database.php (production) with the params in section 4:
+      'hostname' => '127.0.0.1', // 'localhost',
+      'username' => 'progci',
+      'password' => 'progci',
+      'database' => 'wisdomvolkano', 
+- Edit web/application/config/config.php (production) 
+    // geoserver
+  $config['geoserver_rest']    = 'http://localhost:8080/geoserver/rest/workspaces/';
+  $config['geoserver_userpwd'] = 'admin:geoserver';
+    // timeseries folders
+  $config['bar_slash']         = '\\';
+  $config['folder_msbas']      = 'd:\\wisdomvolkano\\web\\assets\\data\\msbas\\'; 
+  $config['folder_msbas_ras']  = '\\RASTERS\\'; // example:  .../msbas/name_of_ts/RASTERS
+  $config['folder_msbas_ts']   = '\\Time_Series\\';  // example:  .../msbas/name_of_ts/Time_Series
+  $config['folder_histogram']  = 'd:\\wisdomvolkano\\web\\assets\\data\\seism-count\\'; 
+  $config['folder_gnss']       = 'd:\\wisdomvolkano\\web\\assets\\data\\gnss-ts\\'; 
+  $config['folder_detrend']    = 'detrend\\'; // added to folder msbas or gnss
+    // sessions folder
+  $config['sess_save_path']    = 'd:\\wisdomvolkano\\web\\ci_sessions\\';
+
+  $config['base_url'] = 'http://localhost/'; 
+- Get a Google Maps API key <https://developers.google.com/maps/documentation/javascript/get-api-key>
+  $config['gmaps_key'] = 'Google_Maps_Javascript_API_Key';
+
+ 
+
+8. cURL
+- Download: <https://curl.haxx.se/download.html> win x64
+- Extract: d:\wisdomvolkano\curl
+- Edit: (if needed) web\application\model\Geoserver_model.php 
+  $curl = "curl"; // for linux
+  $curl = '"D:\\wisdomvolkano\\cURL\\bin\\curl.exe"'; // for windows
+
+ 
+
+9. Copy files to folders
+- Copy files to d:\wisdomvolkano\web\assets\data with the following structure:
+  ├───DInSAR\
+  │   ├───Amplitude
+  │   │   ├───ENVISAT
+  │   │   │   ├───Asc42i5
+  │   │   │   └───Desc35i2
+  │   │   └───ERS
+  │   │       └───Asc228
+  │   ├───Cint
+  │   │   ├───ENVISAT
+  │   │   │   ├───Asc42i5
+  │   │   │   └───Desc35i2
+  │   │   └───ERS
+  │   │       └───Asc228
+  │   ├───Coh
+  │   │   ├───ENVISAT
+  │   │   │   ├───Asc42i5
+  │   │   │   └───Desc35i2
+  │   │   └───ERS
+  │   │       └───Asc228
+  │   ├───MagCint
+  │   │   └───ENVISAT
+  │   │       └───Desc35i2
+  │   ├───MASK
+  │   └───Uint
+  │       └───ENVISAT
+  │           ├───Asc42i5
+  │           └───Desc35i2
+  ├───gnss-map\
+  ├───gnss-ts\
+  │   └───detrend
+  ├───msbas\
+  │   ├───crater-ew
+  │   │   ├───RASTERS
+  │   │   └───Time_Series
+  │   │       └───detrend
+  │   ├───crater-up
+  │   │   ├───RASTERS
+  │   │   └───Time_Series
+  │   │       └───detrend
+  │   ├───EW
+  │   │   ├───RASTERS
+  │   │   └───Time_Series
+  │   │       └───detrend
+  │   └───UP
+  │       ├───RASTERS
+  │       └───Time_Series
+  │           └───detrend
+  ├───seism-count\
+  ├───seism-locat\
+  ├───stations\
+  └───events.js
+  
+
+
+10. Geoserver: load GNSS, Seismo stations
+- Login Geoserver
+- Menu: Workspaces 
+  - Remove all existing 7
+  - Add geom, amp, cint, coh, uint (all same name as namespace URI)
+- Menu: Stores
+  - Add shapefile geom:GNSS_station from d:\wisdomvolkano\web\assets\data\stations\GPS-stations-kml.shp
+  - Publish: name GNSS_station, title geom:GNSS_station
+    Bounding Boxes: Compute from data, and Compute from native bounds
+    
+  - Add shapefile geom:Seismo_station from d:\wisdomvolkano\web\assets\data\stations\Seismos-stations-kml.shp
+  - Publish: name Seismo_station, title geom:Seismo_station
+    Bounding Boxes: Compute from data, and Compute from native bounds
+
+- Menu: Styles
+  - add name GNSS_station_sld from d:\wisdomvolkano\web\geoserver\sld\sl_station_1.xml (Upload, validate, submit)
+  - add name Seismo_station_sld from d:\wisdomvolkano\web\geoserver\sld\sl_station_2.xml (Upload, validate, submit)
+- Menu: Layers  
+  - Edit geom:GNSS_station, tab Publishing, Default style geom:sld_station1, Save
+  - Edit geom:Seismo_station, tab Publishing, Default style geom:sld_station2, Save
+
+  
+  
+11. Geoserver and Wisdom-Volkano: load interferograms
+- Geoserver Menu: Stores, ENVI hdr 
+  - Add D:\wisdomvolkano\web\assets\data\DInSAR\Amplitude\ENVISAT\Asc42i5\LonLatMagMas32160.dat.hdr as 
+    workspace: amp
+    name: ENVISAT_Asc42i5_LonLatMagMas32160
+  Note: support of ENVI header is not very good in Geoserver; when it does not work, layers can be converted to Geotiff, which can be added without any issues
+  - Publish: name: ENVISAT_Asc42i5_LonLatMagMas32160, title: amp:ENVISAT_Asc42i5_LonLatMagMas32160
+- Geoserver Menu: Layer preview
+  - ENVISAT_Asc42i5_LonLatMagMas32160 > OpenLayers
+- Wisdom-Volkano: login and Menu: Add layer, find the added layer above
+- Repeat above steps for every raster interferogram
+
+  
+  
+12. Wisdom-Volkano: load time-series
+- Wisdom-Volkano: Menu: Add time-series
+  - MSBAS, name "Nyiragongo-ew", group folder "EW". All other default
+  - MSBAS, name "Nyiragongo-up", group folder "UP". All other default
+  - Histogram, name "OVG-histogram", file "ovg.tsv", station OVG (as in the KML/Shapefile). Sample content: 
+Date  LP  SP  LP-accumulated  SP-accumulated
+01/01/2010	1	0	1	0
+02/01/2010	2	1	3	1
+03/01/2010	21	0	24	1
+...
+  - GNSS, name "RBV-gnss", file "RBV.enu", station RBV (as in the KML/Shapefile). Sample content: 
+2010.73287671	0.00 0.00 0.00
+2010.73561644	-1.10 -1.30 6.20
+2010.73835616	0.70 0.60 -3.10
+2010.74109589	5.20 2.80 12.60
+- Wisdom-Volkano: Menu: Home, Manage layers, enable the ones created in 11.
+  
+  
+
+13. Seismic locations
+- Geoserver: add Store from Shapefile Seismic location, name geom:Seismic_location, Bounding boxes compute from data
+  - Style: import Seismic_location_SLD, apply
+- Wisdom-volkano: add layer, Manage layers, enable
+  -  Click on a circle: info given. More opaque means closer in time, lighter means older. Bigger circle means higher magnitude.
+- Geoserver: tab Publishing, show Legend
+
+ 
+  
+14. Out of scope: security  
+- Securing all applications involved, from Apache to Geoserver and Codeigniter, aren't covered here but should be your concern.
+- It is recommended that you keep at least two complete configurations, one for test and one for production. 
+- Logging is not covered either but will help you finding and solving errors. 
+- Also recommended backing files up: config, data, logs... 
+
 
 *******
 License
