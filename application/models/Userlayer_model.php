@@ -176,14 +176,18 @@ class Userlayer_model extends CI_Model {
   function get_all_layers( $user_email )
   {
 		$this->load->database();
-		$this->db->where( 'user_email', $user_email );
-    $this->db->order_by( 'config_order', 'ASC' );
-		$this->db->select( 'layer, config_visible, config_opacity, config_order, config_loaded' );
-		$query = $this->db->get( 'user_layers' );
+		$this->db->select( 'u.layer, u.config_visible, u.config_opacity, u.config_order, u.config_loaded, l.layer_name_ws, l.layer_type ' );
+    $this->db->from( 'user_layers u' );
+    $this->db->join( 'layer l', 'u.layer = l.layer_name_ws', 'left' );
+		$this->db->where( 'u.user_email', $user_email );
+    $this->db->order_by( 'u.config_order', 'ASC' );
+		$query = $this->db->get();
     if( $query->num_rows() == 0 )
     {
         log_message( 'error', 'app/model/userlayer/E-005 Error This user ' . $user_email . ' is not granted yet any layers.' );
+        return false;
     }
+    // log_message( 'error', var_dump( $query->result() ) );
 		return $query->result();
 	}
 
